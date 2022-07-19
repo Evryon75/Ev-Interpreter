@@ -1,4 +1,5 @@
 use std::ffi::c_void;
+use std::string::String;
 
 pub enum TokenType {
     Eof,
@@ -28,8 +29,8 @@ pub enum TokenType {
     Or,
     And,
     Not,
-    NumericLiteral,
-    StringLiteral,
+    NumericLiteral{value: i32},
+    StringLiteral{value: String},
     LineComment,
     OpenComment,
     CloseComment,
@@ -58,10 +59,10 @@ pub enum TokenType {
     Catch,
     Import,
     Dot,
-    PreIncrement,
-    PreDecrement,
-    PostIncrement,
-    PostDecrement,
+    This,
+    BackSlash,
+    Ternary,
+    Unknown
 }
 
 pub enum LexerErrorType {
@@ -88,10 +89,11 @@ impl Lexer {
 
         raw_input.chars().for_each(|c| self.vec_input.push(c));
 
-        let mut building_token = "";
+        let mut building_token: String = "".to_string();
 
         while self.cursor < self.vec_input.len() {
-            building_token += self.vec_input[self.cursor];
+            building_token.push(self.vec_input[self.cursor]);
+            let temp_len = self.vec_input.len();
             self.tokens.push(match building_token {
                 "let" => TokenType::Let,
                 "int" => TokenType::Int,
@@ -107,8 +109,43 @@ impl Lexer {
                 "]" => TokenType::RBracket,
                 "{" => TokenType::LBrace,
                 "}" => TokenType::RBrace,
-                _ => {}
+                ";" => TokenType::Semicolon,
+                "&&" => TokenType::And,
+                _ => {
+                    if " .?^'{[(+-/*!|;=".contains(self.vec_input[self.cursor + 1]) {
+                        TokenType::Identifier{ identifier: building_token.to_string() };
+                    }
+                    if building_token == ">" && self.vec_input[self.cursor + 1] != '=' {
+                        TokenType::GreaterThan;
+                    } else if building_token == ">=" {
+                        TokenType::GreaterThanEqual;
+                    }
+                    if building_token == "<" && self.vec_input[self.cursor + 1] != '=' {
+                        TokenType::LessThan;
+                    } else if building_token == "<=" {
+                        TokenType::LessThanEqual;
+                    }
+                    if building_token == "!" && self.vec_input[self.cursor + 1] != '=' {
+                        TokenType::Not;
+                    } else if building_token == "!=" {
+                        TokenType::NotEqual;
+                    }
+                    if building_token == "=" && self.vec_input[self.cursor + 1] != '=' {
+                        TokenType::Equal;
+                    } else if building_token == "==" {
+                        TokenType::DoubleEqual;
+                    }
+                    if building_token == "|" && self.vec_input[self.cursor + 1] != '|' {
+                        TokenType::TypeSeparator;
+                    } else if building_token == "||" {
+                        TokenType::Or;
+                    }
+                    TokenType::Unknown
+                }
             });
+            if temp_len != self.vec_input.len() {
+                building_token = "";
+            }
             self.cursor += 1;
         }
     }
