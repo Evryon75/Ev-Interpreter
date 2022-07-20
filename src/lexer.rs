@@ -1,6 +1,3 @@
-use std::any::Any;
-use crate::main;
-
 pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
     let mut tokens: Vec<TokenType> = Vec::new();
     let parse_errors: Vec<LexerErrorType> = Vec::new();
@@ -13,19 +10,24 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
 
     while cursor < raw_input_vec.len() {
         building_token.push(raw_input_vec[cursor]);
-        let next_token = analyze_token(&building_token);
-        if next_token != TokenType::None {
-            tokens.push(next_token);
-            building_token = "".parse().unwrap();
+        let analysis_result = analyze_token(&building_token);
+        if analysis_result.1 == LexerErrorType::None {
+            if analysis_result.0 != TokenType::None {
+                tokens.push(analysis_result.0);
+                building_token = "".parse().unwrap();
+            }
+        } else {
+            println!("Error: {:?}", analysis_result.1)
         }
         cursor += 1;
     }
     println!("Everything is working properly up to here");
     return if parse_errors.len() > 0 { Err(parse_errors) } else { Ok(tokens) };
 }
-fn analyze_token(token: &String) -> TokenType {
+fn analyze_token(token: &String) -> (TokenType, LexerErrorType) {
 
     let mut resulting_token: TokenType = TokenType::None;
+    let mut errors: LexerErrorType = LexerErrorType::None;
 
     //TODO Before all of those check for each one whether the result is still None
     //TODO Numeric literal finder
@@ -33,7 +35,7 @@ fn analyze_token(token: &String) -> TokenType {
     //TODO Special cases like >=, ==, etc. Check the double ones first for efficiency
     //TODO Match that checks the rest
 
-    resulting_token
+    (resulting_token, errors)
 }
 
 fn parser() {
@@ -125,4 +127,6 @@ pub enum StringLiteralType {
 #[derive(Debug, PartialEq)]
 pub enum LexerErrorType {
     InvalidCharacter,
+    InvalidFloatingPoint,
+    None
 }
