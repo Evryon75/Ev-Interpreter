@@ -1,3 +1,6 @@
+use std::alloc::handle_alloc_error;
+use std::ptr::addr_of;
+
 pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
     let mut tokens: Vec<TokenType> = Vec::new();
     let parse_errors: Vec<LexerErrorType> = Vec::new();
@@ -10,7 +13,10 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
 
     while cursor < raw_input_vec.len() {
         building_token.push(raw_input_vec[cursor]);
-        let analysis_result = analyze_token(&building_token);
+
+        let analysis_result= analyze_token( &building_token,
+if cursor < raw_input_vec.len() - 1 { raw_input_vec[cursor + 1] } else { ' ' });
+
         if analysis_result.1 == LexerErrorType::None {
             if analysis_result.0 != TokenType::None {
                 tokens.push(analysis_result.0);
@@ -24,10 +30,12 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
     println!("Everything is working properly up to here");
     return if parse_errors.len() > 0 { Err(parse_errors) } else { Ok(tokens) };
 }
-fn analyze_token(token: &String) -> (TokenType, LexerErrorType) {
+fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType) {
 
     let mut resulting_token: TokenType = TokenType::None;
-    let mut errors: LexerErrorType = LexerErrorType::None;
+    let mut error: LexerErrorType = LexerErrorType::None;
+
+    let next_check = || resulting_token == TokenType::None && error == LexerErrorType::None;
 
     //TODO Before all of those check for each one whether the result is still None
     //TODO Numeric literal finder
@@ -35,7 +43,27 @@ fn analyze_token(token: &String) -> (TokenType, LexerErrorType) {
     //TODO Special cases like >=, ==, etc. Check the double ones first for efficiency
     //TODO Match that checks the rest
 
-    (resulting_token, errors)
+    if next_check() { // Numeric literal finder
+        let mut dot = false;
+        let mut valid_num = false;
+        token.chars().for_each(|c|{
+            if ".0123456789".contains(c) {
+                valid_num = true;
+            } else { valid_num = false }
+            if !dot { if c == '.' { dot = true }
+            } else {
+                if c == '.' { error = LexerErrorType::InvalidFloatingPoint; valid_num = false }
+            }
+            if token.starts_with('.') { valid_num = false }
+        });
+        if !".0123456789".contains(next_char) && valid_num {
+            resulting_token = TokenType::NumericLiteral {
+                numeric_type: NumericLiteralType::Float, value: token.trim().parse::<f64>().unwrap()
+            };
+        }
+    }
+
+    (resulting_token, error)
 }
 
 fn parser() {
@@ -44,7 +72,7 @@ fn parser() {
 
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
-    NumericLiteral { numeric_type: NumericLiteralType, value: String },
+    NumericLiteral { numeric_type: NumericLiteralType, value: f64 },
     StringLiteral { string_type: StringLiteralType, value: String },
     DeclarationKeyword { keyword: DeclarationKeywords },
     Eof,
