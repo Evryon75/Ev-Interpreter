@@ -92,10 +92,3 @@ pub fn parse(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
 
     return if parse_errors.len() > 0 { Err(parse_errors) } else { Ok(Token) }
 }
-impl Lexer {
-    pub(crate) fn new(input: String) -> Lexer {
-        Lexer {
-            tokens: vec![], input
-        }
-    }
-}
