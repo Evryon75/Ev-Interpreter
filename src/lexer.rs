@@ -9,15 +9,18 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
     input.chars().for_each(|c| raw_input_vec.push(c));
 
     let mut building_token: String = "".parse().unwrap();
+    let mut cursor = 0;
 
-    for cursor in raw_input_vec.len() {
+    while cursor < raw_input_vec.len() {
         building_token.push(raw_input_vec[cursor]);
         let next_token = analyze_token(&building_token);
         if next_token != TokenType::None {
-            tokens.push(next_token)
+            tokens.push(next_token);
+            building_token = "".parse().unwrap();
         }
+        cursor += 1;
     }
-
+    println!("Everything is working properly up to here");
     return if parse_errors.len() > 0 { Err(parse_errors) } else { Ok(tokens) };
 }
 fn analyze_token(token: &String) -> TokenType {
