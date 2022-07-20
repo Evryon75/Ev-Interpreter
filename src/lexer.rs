@@ -117,7 +117,7 @@ impl Lexer {
                 _ => {
                     if self.cursor < self.vec_input.len() - 1 {
                         let mut temp_token_type: TokenType = TokenType::Uninitialized;
-                        if " .?^'{[(+-/*!|;=".contains(self.vec_input[self.cursor + 1])
+                        if " .?^'{[()]}+-/*!|;=".contains(self.vec_input[self.cursor + 1])
                             && building_token != " " && building_token != "" {
                             temp_token_type = TokenType::Identifier { identifier: building_token.to_string() };
                         }
