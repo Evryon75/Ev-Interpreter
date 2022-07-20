@@ -1,6 +1,7 @@
 use std::ffi::c_void;
 use std::string::String;
 
+#[derive(Debug, PartialEq)]
 pub enum TokenType {
     Eof,
     Let,
@@ -62,7 +63,8 @@ pub enum TokenType {
     This,
     BackSlash,
     Ternary,
-    Unknown
+    Unknown{debug: String},
+    Uninitialized
 }
 
 pub enum LexerErrorType {
@@ -72,7 +74,7 @@ pub enum LexerErrorType {
 pub(crate) struct Lexer {
     cursor: usize,
     vec_input: Vec<char>,
-    tokens: Vec<TokenType>,
+    pub tokens: Vec<TokenType>,
     errors: Vec<LexerErrorType>
 }
 
@@ -89,63 +91,71 @@ impl Lexer {
 
         raw_input.chars().for_each(|c| self.vec_input.push(c));
 
-        let mut building_token: String = "".to_string();
+        let mut building_token: String = "".parse().unwrap();
 
         while self.cursor < self.vec_input.len() {
             building_token.push(self.vec_input[self.cursor]);
-            let temp_len = self.vec_input.len();
-            self.tokens.push(match building_token {
-                "let" => TokenType::Let,
-                "int" => TokenType::Int,
-                "float" => TokenType::Float,
-                "double" => TokenType::Double,
-                "long" => TokenType::Long,
-                "string" => TokenType::String,
-                "char" => TokenType::Char,
-                "bool" => TokenType::Bool,
-                "(" => TokenType::LParen,
-                ")" => TokenType::RParen,
-                "[" => TokenType::LBracket,
-                "]" => TokenType::RBracket,
-                "{" => TokenType::LBrace,
-                "}" => TokenType::RBrace,
-                ";" => TokenType::Semicolon,
-                "&&" => TokenType::And,
+            building_token = building_token.trim().parse().unwrap();
+            let temp_len = self.tokens.len();
+            match building_token.as_str() {
+                "let"=> self.tokens.push(TokenType::Let),
+                "int" => self.tokens.push(TokenType::Int),
+                "float" => self.tokens.push(TokenType::Float),
+                "double" => self.tokens.push(TokenType::Double),
+                "long" => self.tokens.push(TokenType::Long),
+                "string" => self.tokens.push(TokenType::String),
+                "char" => self.tokens.push(TokenType::Char),
+                "bool" => self.tokens.push(TokenType::Bool),
+                "(" => self.tokens.push(TokenType::LParen),
+                ")" => self.tokens.push(TokenType::RParen),
+                "[" => self.tokens.push(TokenType::LBracket),
+                "]" => self.tokens.push(TokenType::RBracket),
+                "{" => self.tokens.push(TokenType::LBrace),
+                "}" => self.tokens.push(TokenType::RBrace),
+                ";" => self.tokens.push(TokenType::Semicolon),
+                "&&" => self.tokens.push(TokenType::And),
                 _ => {
-                    if " .?^'{[(+-/*!|;=".contains(self.vec_input[self.cursor + 1]) {
-                        TokenType::Identifier{ identifier: building_token.to_string() };
+                    if self.cursor < self.vec_input.len() - 1 {
+                        let mut temp_token_type: TokenType = TokenType::Uninitialized;
+                        if " .?^'{[(+-/*!|;=".contains(self.vec_input[self.cursor + 1])
+                            && building_token != " " && building_token != "" {
+                            temp_token_type = TokenType::Identifier { identifier: building_token.to_string() };
+                        }
+                        if building_token == ">" && self.vec_input[self.cursor + 1] != '=' {
+                            temp_token_type = TokenType::GreaterThan;
+                        } else if building_token == ">=" {
+                            temp_token_type = TokenType::GreaterThanEqual;
+                        }
+                        if building_token == "<" && self.vec_input[self.cursor + 1] != '=' {
+                            temp_token_type = TokenType::LessThan;
+                        } else if building_token == "<=" {
+                            temp_token_type = TokenType::LessThanEqual;
+                        }
+                        if building_token == "!" && self.vec_input[self.cursor + 1] != '=' {
+                            temp_token_type = TokenType::Not;
+                        } else if building_token == "!=" {
+                            temp_token_type = TokenType::NotEqual;
+                        }
+                        if building_token == "=" && self.vec_input[self.cursor + 1] != '=' {
+                            temp_token_type = TokenType::Equal;
+                        } else if building_token == "==" {
+                            temp_token_type = TokenType::DoubleEqual;
+                        }
+                        if building_token == "|" && self.vec_input[self.cursor + 1] != '|' {
+                            temp_token_type = TokenType::TypeSeparator;
+                        } else if building_token == "||" {
+                            temp_token_type = TokenType::Or;
+                        }
+                        if temp_token_type != TokenType::Uninitialized {
+                            self.tokens.push(temp_token_type);
+                        }
                     }
-                    if building_token == ">" && self.vec_input[self.cursor + 1] != '=' {
-                        TokenType::GreaterThan;
-                    } else if building_token == ">=" {
-                        TokenType::GreaterThanEqual;
-                    }
-                    if building_token == "<" && self.vec_input[self.cursor + 1] != '=' {
-                        TokenType::LessThan;
-                    } else if building_token == "<=" {
-                        TokenType::LessThanEqual;
-                    }
-                    if building_token == "!" && self.vec_input[self.cursor + 1] != '=' {
-                        TokenType::Not;
-                    } else if building_token == "!=" {
-                        TokenType::NotEqual;
-                    }
-                    if building_token == "=" && self.vec_input[self.cursor + 1] != '=' {
-                        TokenType::Equal;
-                    } else if building_token == "==" {
-                        TokenType::DoubleEqual;
-                    }
-                    if building_token == "|" && self.vec_input[self.cursor + 1] != '|' {
-                        TokenType::TypeSeparator;
-                    } else if building_token == "||" {
-                        TokenType::Or;
-                    }
-                    TokenType::Unknown
                 }
-            });
-            if temp_len != self.vec_input.len() {
-                building_token = "";
+            };
+            if temp_len != self.tokens.len() {
+                building_token = "".parse().unwrap();
             }
+
             self.cursor += 1;
         }
     }
