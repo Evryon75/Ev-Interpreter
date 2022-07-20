@@ -155,7 +155,6 @@ impl Lexer {
             if temp_len != self.tokens.len() {
                 building_token = "".parse().unwrap();
             }
-
             self.cursor += 1;
         }
     }
