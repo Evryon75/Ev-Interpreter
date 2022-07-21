@@ -149,7 +149,7 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
 }
 
 fn valid_identifier(identifier: &str) -> bool {
-    static RE: Lazy<Regex> = Lazy::new(|| Regex::new("[_a-zA-Z][_a-zA-Z0-9]*").unwrap());
+    static RE: Lazy<Regex> = Lazy::new(|| Regex::new("[_a-zA-Z][_a-zA-Z0-9]{0,30}").unwrap());
     RE.is_match(identifier)
 }
 
