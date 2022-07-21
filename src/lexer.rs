@@ -1,6 +1,6 @@
+use once_cell::sync::Lazy;
 use crate::lexer::TokenType::NumericLiteral;
-use std::alloc::handle_alloc_error;
-use std::ptr::addr_of;
+use regex::Regex;
 
 pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
     let mut tokens: Vec<TokenType> = Vec::new();
@@ -32,7 +32,8 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
                 building_token = "".parse().unwrap();
             }
         } else {
-            println!("Error: {:?}", analysis_result.1)
+            println!("Lexing Error: {:?}", analysis_result.1);
+            break
         }
         cursor += 1;
     }
@@ -47,8 +48,6 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
     let mut resulting_token: TokenType = TokenType::None;
     let mut error: LexerErrorType = LexerErrorType::None;
 
-    //TODO Before all of those check for each one whether the result is still None
-    //TODO String literal finder
     //TODO Special cases like >=, ==, etc. Check the double ones first for efficiency
     //TODO Match that checks the rest
 
@@ -77,7 +76,7 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
                 valid_num = false
             }
         });
-        if !".0123456789".contains(next_char) && valid_num && token.len() != 0 {
+        if !".0123456789".contains(next_char) && valid_num && !token.is_empty() {
             resulting_token = NumericLiteral {
                 numeric_type: if token.contains('.') {
                     let mut post_dot = false;
@@ -129,13 +128,31 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         }
     }
     // Identifier
-    if resulting_token == TokenType::None && error == LexerErrorType::None {
-            
+    if resulting_token == TokenType::None
+        && error == LexerErrorType::None
+    {
+        if (" .?^'{[()]}+-/*!|;=\"".contains(next_char) || next_char == '⨂')
+            && valid_identifier(token)
+            && !token.starts_with('\"')
+            && !token.is_empty()
+            && token.is_ascii()
+        {
+            resulting_token = TokenType::Identifier {
+                identifier: token.to_string(),
+            }
+        } else if !token.is_ascii() {
+            error = LexerErrorType::NonAsciiCharactersInIdentifier
+        }
     }
+
     (resulting_token, error)
 }
 
-fn parser() {}
+fn valid_identifier(identifier: &str) -> bool {
+    static RE: Lazy<Regex> = Lazy::new(|| Regex::new("[_a-zA-Z][_a-zA-Z0-9]*").unwrap());
+    RE.is_match(identifier)
+}
+
 
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
@@ -161,12 +178,8 @@ pub enum TokenType {
     LBrace,           // {
     RBrace,           // }
     Equal,            // =
-    DoubleEqual,      // ==
-    NotEqual,         // !=
     GreaterThan,      // >
-    GreaterThanEqual, // >=
     LessThan,         // <
-    LessThanEqual,    // <=
     Semicolon,        // ;
     Or,               // ||
     And,              // &&
@@ -237,5 +250,6 @@ pub enum LexerErrorType {
     InvalidFloatingPoint,
     StringLiteralDoesNotEnd,
     CharIsTooLong,
+    NonAsciiCharactersInIdentifier,
     None,
 }
