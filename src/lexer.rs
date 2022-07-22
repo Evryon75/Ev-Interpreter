@@ -124,7 +124,6 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
     if token == "<" && next_char != '=' {
         resulting_token = LessThan;
     }
-    //TODO Single character logical operators
 
     // Numeric literals
     if resulting_token == None && error == LexerErrorType::None {
