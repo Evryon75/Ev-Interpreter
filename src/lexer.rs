@@ -16,7 +16,8 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
         building_token.push(raw_input_vec[cursor]);
         if building_token.as_str() == " "
             || building_token.as_str() == "\n"
-            || building_token.as_str() == "\r" {
+            || building_token.as_str() == "\r"
+        {
             building_token = "".parse().unwrap();
         }
 
@@ -47,6 +48,7 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
         Ok(tokens)
     }
 }
+#[allow(unused_assignments)]
 fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType) {
     use DeclarationKeywords::*;
     use TokenType::*;
@@ -79,9 +81,49 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         "||" => Or,
         "&&" => And,
         "!" => Not,
+        "//" => LineComment,
+        "+" => AdditionOp,
+        "-" => SubtractionOp,
+        "*" => MultiplicationOp,
+        ">>" => ArrowReturn,
+        "#" => Pointer,
+        "@" => Dereference,
+        "as" => Caster,
+        ":" => Colon,
+        "break" => Break,
+        "continue" => Continue,
+        "return" => Return,
+        "if" => If,
+        "else" => Else,
+        "for" => For,
+        "switch" => Switch,
+        "try" => Try,
+        "catch" => Catch,
+        "import" => Import,
+        "." => Dot,
+        "this" => This,
+        "?" => Ternary,
+        "," => Comma,
         &_ => None,
     };
 
+    // Could probably optimise by doing resulting_token = if token * and next token !* {one} else {two}
+    // but im unsure about the behaviour it could generate
+    if token == "/" && next_char != '/' {
+        resulting_token = DivisionOp;
+    }
+    if token == "|" && next_char != '|' {
+        resulting_token = TypeSeparator;
+    }
+    if token == "=" && next_char != '=' {
+        resulting_token = Equal;
+    }
+    if token == ">" && next_char != '=' {
+        resulting_token = GreaterThan;
+    }
+    if token == "<" && next_char != '=' {
+        resulting_token = LessThan;
+    }
     //TODO Single character logical operators
 
     // Numeric literals
@@ -107,11 +149,7 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
             }
         });
 
-        if !".0123456789".contains(next_char)
-            && valid_num
-            && !token.is_empty()
-        {
-            dbg!(token);
+        if !".0123456789".contains(next_char) && valid_num && !token.is_empty() {
             resulting_token = NumericLiteral {
                 numeric_type: if token.contains('.') {
                     let mut post_dot = false;
@@ -222,18 +260,14 @@ pub enum TokenType {
     And,              // &&
     Not,              // !
     LineComment,      // //
-    OpenComment,      // />
-    CloseComment,     // </
     TypeSeparator,    // |
     AdditionOp,       // +
     SubtractionOp,    // -
     MultiplicationOp, // *
     DivisionOp,       // /
     ArrowReturn,      // >>
-    SingleQuote,      // '
-    DoubleQuote,      // "
-    Pointer,          // ^
-    Dereference,      // &
+    Pointer,          // #
+    Dereference,      // @
     Caster,           // as
     Colon,            // :
     Break,            // break
@@ -248,14 +282,9 @@ pub enum TokenType {
     Import,           // import
     Dot,              // dot
     This,             // this
-    BackSlash,        // \
-    BackSlashN,       // \n
     Ternary,          // ?
     Comma,            // ,
     None,             // No token found, gets removed later
-    Debug {
-        debug: String,
-    }, //TODO Remove this when lexer is done
 }
 #[derive(Debug, PartialEq)]
 pub enum DeclarationKeywords {
@@ -284,7 +313,6 @@ pub enum StringLiteralType {
 }
 #[derive(Debug, PartialEq)]
 pub enum LexerErrorType {
-    InvalidCharacter,
     InvalidFloatingPoint,
     StringLiteralDoesNotEnd,
     CharIsTooLong,

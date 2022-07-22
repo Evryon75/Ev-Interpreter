@@ -1,5 +1,5 @@
 use crate::lexer::tokenize;
-use std::fs::{read, File};
+use std::fs::File;
 use std::io::Read;
 
 mod ast;
