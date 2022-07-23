@@ -1,3 +1,4 @@
+use crate::ast::parse_tokens;
 use crate::lexer::tokenize;
 use std::fs::File;
 use std::io::Read;
@@ -11,10 +12,6 @@ fn main() {
 
     file_input
         .read_to_string(&mut reading_input)
-        .expect("Something went wrong");
-
-    let tokenized_input = tokenize(reading_input);
-    for i in tokenized_input.unwrap() {
-        println!("\n {:?}", i);
-    }
+        .expect("Something went wrong when reading to string");
+    parse_tokens(tokenize(reading_input).unwrap());
 }

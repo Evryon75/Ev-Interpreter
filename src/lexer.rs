@@ -5,7 +5,7 @@ const EOF_SYMBOL: char = '⨂';
 
 pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
     let mut tokens: Vec<TokenType> = Vec::new();
-    let parse_errors: Vec<LexerErrorType> = Vec::new();
+    let lexing_errors: Vec<LexerErrorType> = Vec::new();
 
     let mut raw_input_vec: Vec<char> = Vec::new();
     input.chars().for_each(|c| raw_input_vec.push(c));
@@ -42,8 +42,8 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
         cursor += 1;
     }
 
-    if parse_errors.len() > 0 {
-        Err(parse_errors)
+    if lexing_errors.len() > 0 {
+        Err(lexing_errors)
     } else {
         Ok(tokens)
     }
@@ -88,7 +88,6 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         ">>" => ArrowReturn,
         "#" => Pointer,
         "@" => Dereference,
-        "as" => Caster,
         ":" => Colon,
         "break" => Break,
         "continue" => Continue,
@@ -104,6 +103,8 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         "this" => This,
         "?" => Ternary,
         "," => Comma,
+        "true" => BooleanLiteral{ value: true },
+        "false" => BooleanLiteral{ value: false },
         &_ => None,
     };
 
@@ -123,6 +124,9 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
     }
     if token == "<" && next_char != '=' {
         resulting_token = LessThan;
+    }
+    if token == "as" && next_char == ' ' {
+        resulting_token = Caster;
     }
 
     // Numeric literals
@@ -242,6 +246,7 @@ pub enum TokenType {
     DeclarationKeyword {
         keyword: DeclarationKeywords,
     },
+    BooleanLiteral {value: bool},
     LParen,           // (
     RParen,           // )
     LBracket,         // [
