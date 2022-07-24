@@ -95,7 +95,6 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         "if" => If,
         "else" => Else,
         "for" => For,
-        "switch" => Switch,
         "try" => Try,
         "catch" => Catch,
         "import" => Import,
@@ -280,7 +279,6 @@ pub enum TokenType {
     If,               // if
     Else,             // else
     For,              // for
-    Switch,           // switch
     Try,              // try
     Catch,            // catch
     Import,           // import
