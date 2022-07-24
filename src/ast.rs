@@ -16,6 +16,4 @@ enum Node {
     Addition{left: Node, right: Node},
     Multiplication{left: Node, right: Node},
     Division{left: Node, right: Node},
-    Expression,
-    Statement,
 }
