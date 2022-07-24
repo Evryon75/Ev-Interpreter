@@ -7,8 +7,7 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
     let mut tokens: Vec<TokenType> = Vec::new();
     let lexing_errors: Vec<LexerErrorType> = Vec::new();
 
-    let mut raw_input_vec: Vec<char> = Vec::new();
-    input.chars().for_each(|c| raw_input_vec.push(c));
+    let raw_input_vec: Vec<char> = input.chars().collect();
 
     let mut building_token: String = "".parse().unwrap();
     let mut cursor = 0;
