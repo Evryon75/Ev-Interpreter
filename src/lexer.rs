@@ -219,7 +219,6 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         }
     } else if token.contains('\n') {
         resulting_token = LineComment;
-        println!("{}", token)
     }
 
     if next_char == EOF_SYMBOL {
