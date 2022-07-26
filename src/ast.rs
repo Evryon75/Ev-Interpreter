@@ -6,29 +6,50 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
     }
 
     let mut cursor = 0;
-    let mut expect = |token_type: TokenType| {
-        if std::mem::discriminant(&tokens[cursor]) == std::mem::discriminant(&token_type) {
-            cursor += 1;
+    let mut expect = |token_type: TokenType, cursor: &mut usize| {
+        if std::mem::discriminant(&tokens[*cursor]) == std::mem::discriminant(&token_type) {
+            *cursor += 1;
         } else {
-            println!("Expected: {:?} Found: {:?}", token_type,  &tokens[cursor]);
+            println!("Parsing Error: Unexpected Token [{:?}]", &tokens[*cursor]);
             std::process::exit(0);
         }
     };
 
     //Basic number variable declaration test
-    expect(TokenType::DeclarationKeyword { keyword: DeclarationKeywords::Let });
-    expect(TokenType::Identifier { identifier: "".to_string() });
-    expect(TokenType::Equal);
-    expect(TokenType::NumericLiteral { numeric_type: NumericLiteralType::Int, value: 0.0 });
+    expect(
+        TokenType::DeclarationKeyword {
+            keyword: DeclarationKeywords::Let,
+        },
+        &mut cursor,
+    );
+    expect(
+        TokenType::Identifier {
+            identifier: "".to_string(),
+        },
+        &mut cursor,
+    );
+    let identifier = match &tokens[cursor - 1] {
+        TokenType::Identifier { identifier } => identifier,
+        _ => unreachable!(),
+    };
+    expect(TokenType::Equal, &mut cursor);
+    expect(
+        TokenType::NumericLiteral {
+            numeric_type: NumericLiteralType::Int,
+            value: 0.0,
+        },
+        &mut cursor,
+    );
+
+    //todo: for cursor in tokens { match token[cursor] { let, fun, etc => each parser }
 
     let ast = AbstractSyntaxTree { program: vec![] };
     for i in ast.program {
         println!("{:?}", i);
     }
+    println!("Parsing finished successfully")
 }
-fn parse_expression() {
-
-}
+fn parse_expression() {}
 
 struct AbstractSyntaxTree {
     pub program: Vec<Node>,
@@ -38,9 +59,14 @@ impl AbstractSyntaxTree {}
 #[derive(Debug, PartialEq)]
 enum Operator {
     Plus,
-    Min,
-    Mul,
-    Div
+    Minus,
+    Multiplication,
+    Division,
+    PreIncrement,
+    PostIncrement,
+    PreDecrement,
+    PostDecrement,
+    Negation,
 }
 #[derive(Debug, PartialEq)]
 enum Node {
@@ -57,5 +83,5 @@ enum Node {
         lhs: Box<Node>,
         rhs: Box<Node>,
     },
-    Expression
+    Expression,
 }

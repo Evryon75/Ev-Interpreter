@@ -38,7 +38,7 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
             }
         } else {
             println!("Lexing Error: {:?}", analysis_result.1);
-            break;
+            std::process::exit(0);
         }
         cursor += 1;
     }
