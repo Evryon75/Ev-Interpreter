@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -231,7 +232,6 @@ fn valid_identifier(identifier: &str) -> bool {
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"[_a-zA-Z]\w{0,30}").unwrap());
     RE.is_match(identifier)
 }
-
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
     NumericLiteral {
