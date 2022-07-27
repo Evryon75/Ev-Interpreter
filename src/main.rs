@@ -1,3 +1,5 @@
+extern crate core;
+
 use crate::ast::parse_tokens;
 use crate::lexer::tokenize;
 use std::fs::File;

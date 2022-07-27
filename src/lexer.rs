@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
 use once_cell::sync::Lazy;
 use regex::Regex;
+use std::fmt::{Display, Formatter};
 
 const EOF_SYMBOL: char = '⨂';
 
@@ -27,10 +27,11 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
                 raw_input_vec[cursor + 1]
             } else {
                 EOF_SYMBOL
-            });
+            },
+        );
 
         if analysis_result.1 == LexerErrorType::None {
-            if analysis_result.0 != TokenType::None && analysis_result.0 != TokenType::LineComment{
+            if analysis_result.0 != TokenType::None && analysis_result.0 != TokenType::LineComment {
                 tokens.push(analysis_result.0);
                 building_token = "".parse().unwrap();
             } else if analysis_result.0 == TokenType::LineComment {
@@ -38,7 +39,7 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
             }
         } else {
             println!("Lexing Error: {:?}", analysis_result.1);
-            std::process::exit(0);
+            panic!();
         }
         cursor += 1;
     }
@@ -51,7 +52,6 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
 }
 #[allow(unused_assignments)]
 fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType) {
-    use DeclarationKeywords::*;
     use TokenType::*;
 
     let mut resulting_token: TokenType = None;
@@ -60,16 +60,15 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
     if !token.trim().starts_with("//") {
         //Simple tokens
         resulting_token = match token.as_str() {
-            "int" => DeclarationKeyword { keyword: Int },
-            "long" => DeclarationKeyword { keyword: Long },
-            "float" => DeclarationKeyword { keyword: Float },
-            "double" => DeclarationKeyword { keyword: Double },
-            "string" => DeclarationKeyword { keyword: String },
-            "char" => DeclarationKeyword { keyword: Char },
-            "let" => DeclarationKeyword { keyword: Let },
-            "bool" => DeclarationKeyword { keyword: Bool },
-            "struct" => DeclarationKeyword { keyword: Struct },
-            "class" => DeclarationKeyword { keyword: Class },
+            "fun" => Fun,
+            "let" => Let,
+            "int" => Primitive { primitive_type: PrimitiveType::Int },
+            "long" => Primitive { primitive_type: PrimitiveType::Long },
+            "float" => Primitive { primitive_type: PrimitiveType::Float },
+            "double" => Primitive { primitive_type: PrimitiveType::Double },
+            "string" => Primitive { primitive_type: PrimitiveType::String },
+            "char" => Primitive { primitive_type: PrimitiveType::Char },
+            "bool" => Primitive { primitive_type: PrimitiveType::Bool },
             "(" => LParen,
             ")" => RParen,
             "[" => LBracket,
@@ -86,19 +85,15 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
             "+" => AdditionOp,
             "-" => SubtractionOp,
             "*" => MultiplicationOp,
-            ">>" => ArrowReturn,
-            "#" => Pointer,
-            "@" => Dereference,
             ":" => Colon,
             "break" => Break,
             "continue" => Continue,
             "return" => Return,
             "if" => If,
             "else" => Else,
-            "for" => For,
+            "while" => While,
             "try" => Try,
             "catch" => Catch,
-            "import" => Import,
             "." => Dot,
             "this" => This,
             "?" => Ternary,
@@ -245,12 +240,11 @@ pub enum TokenType {
     Identifier {
         identifier: String,
     },
-    DeclarationKeyword {
-        keyword: DeclarationKeywords,
-    },
     BooleanLiteral {
         value: bool,
     },
+    Let,
+    Fun,
     LParen,           // (
     RParen,           // )
     LBracket,         // [
@@ -283,28 +277,17 @@ pub enum TokenType {
     Return,           // return
     If,               // if
     Else,             // else
-    For,              // for
+    While,            // while
     Try,              // try
     Catch,            // catch
-    Import,           // import
     Dot,              // dot
     This,             // this
     Ternary,          // ?
     Comma,            // ,
     None,             // No token found, gets removed later
-}
-#[derive(Debug, PartialEq)]
-pub enum DeclarationKeywords {
-    Class,  // class
-    Struct, // struct
-    Let,    // let
-    Bool,   // bool
-    Int,    // int
-    Float,  // float
-    Double, // double
-    Long,   // long
-    String, // string
-    Char,   // char
+    Primitive {
+        primitive_type: PrimitiveType
+    }
 }
 #[derive(Debug, PartialEq)]
 pub enum NumericLiteralType {
@@ -325,4 +308,8 @@ pub enum LexerErrorType {
     CharIsTooLong,
     NonAsciiCharactersInIdentifier,
     None,
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum PrimitiveType {
+    Int, Long, Float, Double, String, Char, Bool
 }
