@@ -1,6 +1,7 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::fmt::{Display, Formatter};
+use colour::*;
 
 const EOF_SYMBOL: char = '⨂';
 
@@ -38,7 +39,7 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
                 building_token = "".parse().unwrap();
             }
         } else {
-            println!("Lexing Error: {:?}", analysis_result.1);
+            red_ln!("Lexing Error: {:?}", analysis_result.1);
             panic!();
         }
         cursor += 1;
@@ -62,13 +63,27 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         resulting_token = match token.as_str() {
             "fun" => Fun,
             "let" => Let,
-            "int" => Primitive { primitive_type: PrimitiveType::Int },
-            "long" => Primitive { primitive_type: PrimitiveType::Long },
-            "float" => Primitive { primitive_type: PrimitiveType::Float },
-            "double" => Primitive { primitive_type: PrimitiveType::Double },
-            "string" => Primitive { primitive_type: PrimitiveType::String },
-            "char" => Primitive { primitive_type: PrimitiveType::Char },
-            "bool" => Primitive { primitive_type: PrimitiveType::Bool },
+            "int" => Primitive {
+                primitive_type: PrimitiveType::Int,
+            },
+            "long" => Primitive {
+                primitive_type: PrimitiveType::Long,
+            },
+            "float" => Primitive {
+                primitive_type: PrimitiveType::Float,
+            },
+            "double" => Primitive {
+                primitive_type: PrimitiveType::Double,
+            },
+            "string" => Primitive {
+                primitive_type: PrimitiveType::String,
+            },
+            "char" => Primitive {
+                primitive_type: PrimitiveType::Char,
+            },
+            "bool" => Primitive {
+                primitive_type: PrimitiveType::Bool,
+            },
             "(" => LParen,
             ")" => RParen,
             "[" => LBracket,
@@ -218,7 +233,7 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
     }
 
     if next_char == EOF_SYMBOL {
-        println!("Lexing finished successfully");
+        green_ln!("Lexing finished successfully");
     }
     (resulting_token, error)
 }
@@ -286,8 +301,8 @@ pub enum TokenType {
     Comma,            // ,
     None,             // No token found, gets removed later
     Primitive {
-        primitive_type: PrimitiveType
-    }
+        primitive_type: PrimitiveType,
+    },
 }
 #[derive(Debug, PartialEq)]
 pub enum NumericLiteralType {
@@ -311,5 +326,11 @@ pub enum LexerErrorType {
 }
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PrimitiveType {
-    Int, Long, Float, Double, String, Char, Bool
+    Int,
+    Long,
+    Float,
+    Double,
+    String,
+    Char,
+    Bool,
 }
