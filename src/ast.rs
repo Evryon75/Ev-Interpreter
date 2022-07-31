@@ -1,18 +1,14 @@
 use crate::ast::Node::{Expression, VariableDeclaration};
 use crate::lexer::{NumericLiteralType, PrimitiveType, TokenType};
+use colour::*;
 use std::ptr::null;
-use colour::{black_ln, cyan_ln, green_ln, red_ln, yellow_ln};
 
 pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
-    for i in &tokens {
-        yellow_ln!("RAW: {:?}", i);
-    }
-
     let mut cursor = 0;
     let mut expect = |token_types: Vec<TokenType>, cursor: &mut usize| {
         let mut received = false;
         for token in &token_types {
-            println!("EXPECTING: {:?} CODE: {:?}", &token, &cursor);
+            magenta_ln!("EXPECTING: {:?}", &token);
             if std::mem::discriminant(&tokens[*cursor]) == std::mem::discriminant(&token) {
                 received = true;
             }
@@ -21,29 +17,58 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
             } else {
                 red_ln!(
                     "Parsing Error: Unexpected Token [{:?}] expected: {:?}",
-                    &tokens[*cursor], token_types
+                    &tokens[*cursor],
+                    token_types
                 );
                 panic!()
             }
         }
     };
     fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
-
         match &token_vec[*cursor] {
-            TokenType::LParen => ExpressionType::None,
-            TokenType::NumericLiteral {
-                value, ..
-            } => {
-
-                let mut lhs: ExpressionType = ExpressionType::LiteralE { value: Literal::NumberL{ value: *value } };
+            TokenType::LParen => {
+                *cursor += 1;
+                let mut result: ExpressionType = parse_expression(token_vec, cursor);
+                *cursor += 1;
+                if token_vec[*cursor - 1] == TokenType::RParen {
+                    if vec![
+                        TokenType::DivisionOp,
+                        TokenType::MultiplicationOp,
+                        TokenType::AdditionOp,
+                        TokenType::SubtractionOp,
+                    ]
+                    .contains(&token_vec[*cursor])
+                    {
+                        let oper = match &token_vec[*cursor] {
+                            TokenType::SubtractionOp => Operator::Minus,
+                            TokenType::AdditionOp => Operator::Plus,
+                            TokenType::DivisionOp => Operator::Division,
+                            TokenType::MultiplicationOp => Operator::Multiplication,
+                            _ => unreachable!(),
+                        };
+                        *cursor += 1;
+                        result = ExpressionType::BinaryE {
+                            op: oper,
+                            lhs: Box::from(result),
+                            rhs: Box::from(parse_expression(token_vec, cursor))
+                        }
+                    }
+                } else {
+                    red_ln!("Parsing Error: Opening Parenthesis without Closing Parenthesis");
+                    panic!()
+                };
+                result
+            }
+            TokenType::NumericLiteral { value, .. } => {
+                let mut lhs: ExpressionType = ExpressionType::LiteralE {
+                    value: Literal::NumberL { value: *value },
+                };
 
                 let mut oper = Operator::None;
                 *cursor += 1;
-                lhs = if vec![
-                    TokenType::DivisionOp,
-                    TokenType::MultiplicationOp,
-                ].contains(&token_vec[*cursor]) {
-                    cyan_ln!("hi");
+                lhs = if vec![TokenType::DivisionOp, TokenType::MultiplicationOp]
+                    .contains(&token_vec[*cursor])
+                {
                     oper = match &token_vec[*cursor] {
                         TokenType::DivisionOp => Operator::Division,
                         TokenType::MultiplicationOp => Operator::Multiplication,
@@ -54,16 +79,13 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     ExpressionType::BinaryE {
                         op: oper,
                         lhs: Box::new(lhs),
-                        rhs: Box::new(parse_expression(token_vec, cursor))
+                        rhs: Box::new(parse_expression(token_vec, cursor)),
                     }
                 } else {
                     lhs
                 };
-                let rhs: ExpressionType = if vec![
-                    TokenType::AdditionOp,
-                    TokenType::SubtractionOp,
-                ]
-                .contains(&token_vec[*cursor])
+                let rhs: ExpressionType = if vec![TokenType::AdditionOp, TokenType::SubtractionOp]
+                    .contains(&token_vec[*cursor])
                 {
                     oper = match &token_vec[*cursor] {
                         TokenType::SubtractionOp => Operator::Minus,
@@ -188,7 +210,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
     }
 
     for i in ast.program {
-        println!("{:?}", i);
+        yellow_ln!("{:#?}", i);
     }
     green_ln!("Parsing finished successfully")
 }
@@ -247,7 +269,7 @@ enum ExpressionType {
     Ident {
         value: String,
     },
-    None, //todo: Remove when finished
+    None
 }
 #[derive(Debug, PartialEq)]
 enum Literal {

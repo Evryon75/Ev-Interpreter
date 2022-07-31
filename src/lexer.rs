@@ -1,7 +1,7 @@
+use colour::*;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::fmt::{Display, Formatter};
-use colour::*;
 
 const EOF_SYMBOL: char = '⨂';
 
