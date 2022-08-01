@@ -1,3 +1,4 @@
+use crate::ast::ExpressionType::UnaryE;
 use crate::ast::Node::{Expression, VariableDeclaration};
 use crate::lexer::{NumericLiteralType, PrimitiveType, TokenType};
 use colour::*;
@@ -24,15 +25,69 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
             }
         }
     };
-    fn parse_expression(
-        token_vec: &Vec<TokenType>,
-        cursor: &mut usize,
-    ) -> ExpressionType {
+    fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
         match &token_vec[*cursor] {
+            TokenType::SubtractionOp => {
+                *cursor += 3;
+
+                if std::mem::discriminant(&token_vec[*cursor - 2])
+                    == std::mem::discriminant(&TokenType::NumericLiteral {
+                        numeric_type: NumericLiteralType::Int,
+                        value: 0.0,
+                    })
+                {
+                    if &token_vec[*cursor - 1] != &TokenType::RParen {
+
+                        ExpressionType::BinaryE {
+                            op: match &token_vec[*cursor - 1] {
+                                TokenType::SubtractionOp => Operator::Minus,
+                                TokenType::AdditionOp => Operator::Plus,
+                                TokenType::DivisionOp => Operator::Division,
+                                TokenType::MultiplicationOp => Operator::Multiplication,
+                                _ => {
+                                    unreachable!()
+                                }
+                            },
+                            lhs: Box::new(UnaryE {
+                                op: Operator::Minus,
+                                child: Box::new(ExpressionType::LiteralE {
+                                    value: Literal::NumberL {
+                                        value: *match &token_vec[*cursor - 2] {
+                                            TokenType::NumericLiteral { value, .. } => value,
+                                            _ => {
+                                                unreachable!()
+                                            }
+                                        },
+                                    },
+                                }),
+                            }),
+                            rhs: Box::new(parse_expression(token_vec, cursor)),
+                        }
+                    } else {
+                        UnaryE {
+                            op: Operator::Minus,
+                            child: Box::new(ExpressionType::LiteralE {
+                                value: Literal::NumberL {
+                                    value: *match &token_vec[*cursor - 2] {
+                                        TokenType::NumericLiteral { value, .. } => value,
+                                        _ => {
+                                            unreachable!()
+                                        }
+                                    },
+                                },
+                            }),
+                        }
+                    }
+                } else {
+                    red_ln!("Parsing Error: Unary Operator on non Numeric Literal");
+                    panic!()
+                }
+            }
             TokenType::LParen => {
                 *cursor += 1;
                 let mut result: ExpressionType = parse_expression(token_vec, cursor);
                 *cursor += 1;
+
                 if token_vec[*cursor - 1] == TokenType::RParen {
                     if vec![
                         TokenType::DivisionOp,
@@ -60,6 +115,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     }
                 } else {
                     red_ln!("Parsing Error: Opening Parenthesis without Closing Parenthesis");
+                    blue_ln!("Note: The developer was too lazy to fix this bug (i tried i swear) so if you are trying to put something like \"(-1)\" in an expression you have to change it to \"(-1 + 0)\"");
                     panic!()
                 }
             }
@@ -253,7 +309,7 @@ enum Node {
         body: Box<Node>,
     },
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum ExpressionType {
     LiteralE {
         value: Literal,
@@ -275,7 +331,7 @@ enum ExpressionType {
     },
     None,
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum Literal {
     NumberL { value: f64 },
     StringL { value: String },
