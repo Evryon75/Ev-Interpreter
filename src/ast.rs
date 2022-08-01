@@ -29,7 +29,6 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
         match &token_vec[*cursor] {
             TokenType::SubtractionOp => {
                 *cursor += 3;
-
                 if std::mem::discriminant(&token_vec[*cursor - 2])
                     == std::mem::discriminant(&TokenType::NumericLiteral {
                         numeric_type: NumericLiteralType::Int,
