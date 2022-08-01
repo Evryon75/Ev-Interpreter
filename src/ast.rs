@@ -123,7 +123,6 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 let mut lhs: ExpressionType = ExpressionType::LiteralE {
                     value: Literal::NumberL { value: *value },
                 };
-
                 let mut oper = Operator::None;
                 *cursor += 1;
                 lhs = if vec![TokenType::DivisionOp, TokenType::MultiplicationOp]
