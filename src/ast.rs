@@ -24,7 +24,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
             }
         }
     };
-    fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
+    fn parse_expression(
+        token_vec: &Vec<TokenType>,
+        cursor: &mut usize,
+    ) -> ExpressionType {
         match &token_vec[*cursor] {
             TokenType::LParen => {
                 *cursor += 1;
@@ -47,17 +50,18 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                             _ => unreachable!(),
                         };
                         *cursor += 1;
-                        result = ExpressionType::BinaryE {
+                        ExpressionType::BinaryE {
                             op: oper,
                             lhs: Box::from(result),
-                            rhs: Box::from(parse_expression(token_vec, cursor))
+                            rhs: Box::from(parse_expression(token_vec, cursor)),
                         }
+                    } else {
+                        result
                     }
                 } else {
                     red_ln!("Parsing Error: Opening Parenthesis without Closing Parenthesis");
                     panic!()
-                };
-                result
+                }
             }
             TokenType::NumericLiteral { value, .. } => {
                 let mut lhs: ExpressionType = ExpressionType::LiteralE {
@@ -269,7 +273,7 @@ enum ExpressionType {
     Ident {
         value: String,
     },
-    None
+    None,
 }
 #[derive(Debug, PartialEq)]
 enum Literal {
