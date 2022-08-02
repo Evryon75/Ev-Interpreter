@@ -7,7 +7,6 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
     let expect = |token_types: Vec<TokenType>, cursor: &mut usize| {
         let mut received = false;
         for token in &token_types {
-            magenta_ln!("EXPECTING: {:?}", &token);
             if tokens.len().eq(&cursor) {
                 red_ln!("Parsing Error: Semicolon Expected");
                 panic!()
@@ -31,7 +30,11 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
         match &token_vec[*cursor] {
             TokenType::StringLiteral { value, .. } => {
                 *cursor += 1;
-                ExpressionType::LiteralE { value: Literal::StringL { value: value.to_string() } }
+                ExpressionType::LiteralE {
+                    value: Literal::StringL {
+                        value: value.to_string(),
+                    },
+                }
             }
             TokenType::Not => {
                 red_ln!(
@@ -212,12 +215,21 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 };
                 let mut oper = Operator::None;
                 *cursor += 1;
-                lhs = if vec![TokenType::DivisionOp, TokenType::MultiplicationOp]
-                    .contains(&token_vec[*cursor])
+                lhs = if vec![
+                    TokenType::DivisionOp,
+                    TokenType::MultiplicationOp,
+                    TokenType::GreaterThan,
+                    TokenType::LessThan,
+                    TokenType::DoubleEqual,
+                ]
+                .contains(&token_vec[*cursor])
                 {
                     oper = match &token_vec[*cursor] {
                         TokenType::DivisionOp => Operator::Division,
                         TokenType::MultiplicationOp => Operator::Multiplication,
+                        TokenType::GreaterThan => Operator::Greater,
+                        TokenType::LessThan => Operator::Less,
+                        TokenType::DoubleEqual => Operator::DoubleEqual,
                         _ => Operator::None,
                     };
                     *cursor += 1;
@@ -229,7 +241,13 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 } else {
                     lhs
                 };
-                let rhs: ExpressionType = if vec![TokenType::AdditionOp, TokenType::SubtractionOp]
+                let rhs: ExpressionType = if vec![
+                    TokenType::DivisionOp,
+                    TokenType::MultiplicationOp,
+                    TokenType::GreaterThan,
+                    TokenType::LessThan,
+                    TokenType::DoubleEqual,
+                ]
                     .contains(&token_vec[*cursor])
                 {
                     oper = match &token_vec[*cursor] {
@@ -281,7 +299,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 };
                 if id == "output" || id == "input" {
                     red_ln!("Cannot overwrite I/O functions [input(), output()]");
-                    panic!("Cannot overwrite I/O functions [input(), output()]");
+                    panic!();
                 }
                 expect(vec![TokenType::Equal], &mut cursor);
                 let expression = parse_expression(&tokens, &mut cursor);
@@ -382,6 +400,9 @@ enum Operator {
     Division,
     And,
     Or,
+    Greater,
+    Less,
+    DoubleEqual,
     None,
 }
 #[derive(Debug, PartialEq)]
