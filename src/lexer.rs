@@ -1,7 +1,6 @@
 use colour::*;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::fmt::{Display, Formatter};
 
 const EOF_SYMBOL: char = '⨂';
 
@@ -282,9 +281,6 @@ pub enum TokenType {
     SubtractionOp,    // -
     MultiplicationOp, // *
     DivisionOp,       // /
-    ArrowReturn,      // >>
-    Pointer,          // #
-    Dereference,      // @
     Caster,           // as
     Colon,            // :
     Break,            // break

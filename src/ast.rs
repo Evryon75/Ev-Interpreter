@@ -1,15 +1,17 @@
 use crate::ast::ExpressionType::UnaryE;
-use crate::ast::Node::{Expression, VariableDeclaration};
 use crate::lexer::{NumericLiteralType, PrimitiveType, TokenType};
 use colour::*;
-use std::ptr::null;
 
 pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
     let mut cursor = 0;
-    let mut expect = |token_types: Vec<TokenType>, cursor: &mut usize| {
+    let expect = |token_types: Vec<TokenType>, cursor: &mut usize| {
         let mut received = false;
         for token in &token_types {
             magenta_ln!("EXPECTING: {:?}", &token);
+            if tokens.len().eq(&cursor) {
+                red_ln!("Parsing Error: Semicolon Expected");
+                panic!()
+            }
             if std::mem::discriminant(&tokens[*cursor]) == std::mem::discriminant(&token) {
                 received = true;
             }
@@ -27,6 +29,18 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
     };
     fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
         match &token_vec[*cursor] {
+            TokenType::StringLiteral { value, .. } => {
+                *cursor += 1;
+                ExpressionType::LiteralE { value: Literal::StringL { value: value.to_string() } }
+            }
+            TokenType::Not => {
+                red_ln!(
+                    "The Ev programming language does not provide the \"Not\" [!] logical operator"
+                );
+                blue_ln!("Use this function instead:\nfun not = (param as bool) {\n   if param {\n      return false;\n   } else {\n      return true;\n   }\n}");
+                grey_ln!("You can also use a ternary operator: \"true ? false : true\"\nComing soon [maybe]");
+                panic!()
+            }
             TokenType::BooleanLiteral { value } => {
                 *cursor += 1;
                 let op = match token_vec[*cursor] {
@@ -36,6 +50,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     TokenType::MultiplicationOp => Operator::Minus,
                     TokenType::And => Operator::And,
                     TokenType::Or => Operator::Or,
+                    TokenType::Ternary => Operator::Ternary,
                     _ => Operator::None,
                 };
                 if op == Operator::Minus {
@@ -50,6 +65,12 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                             value: value.to_owned(),
                         },
                     }
+                } else if op == Operator::Ternary {
+                    red_ln!(
+                        "Parsing Error: The Ev programming language does not provide the \"Ternary operator\""
+                    );
+                    grey_ln!("I was going to add it but then i changed my mind");
+                    panic!()
                 } else {
                     *cursor += 1;
                     ExpressionType::BinaryE {
@@ -151,7 +172,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
             }
             TokenType::LParen => {
                 *cursor += 1;
-                let mut result: ExpressionType = parse_expression(token_vec, cursor);
+                let result: ExpressionType = parse_expression(token_vec, cursor);
                 *cursor += 1;
 
                 if token_vec[*cursor - 1] == TokenType::RParen {
@@ -266,7 +287,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 let expression = parse_expression(&tokens, &mut cursor);
                 expect(vec![TokenType::Semicolon], &mut cursor);
 
-                ast.program.push(VariableDeclaration {
+                ast.program.push(Node::VariableDeclaration {
                     value: expression,
                     identifier: id.to_string(),
                 })
@@ -354,11 +375,11 @@ impl AbstractSyntaxTree {}
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Operator {
+    Ternary,
     Plus,
     Minus,
     Multiplication,
     Division,
-    Not,
     And,
     Or,
     None,
@@ -396,9 +417,6 @@ enum ExpressionType {
     UnaryE {
         op: Operator,
         child: Box<ExpressionType>,
-    },
-    GroupingE {
-        value: Box<ExpressionType>,
     },
     Ident {
         value: String,
