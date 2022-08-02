@@ -7,6 +7,7 @@ use std::io::Read;
 
 mod ast;
 mod lexer;
+mod walker;
 
 fn main() {
     let mut file_input = File::open("hello world.ev").expect("Something went wrong");

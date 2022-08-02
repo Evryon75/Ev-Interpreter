@@ -27,6 +27,74 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
     };
     fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
         match &token_vec[*cursor] {
+            TokenType::BooleanLiteral { value } => {
+                *cursor += 1;
+                let op = match token_vec[*cursor] {
+                    TokenType::SubtractionOp => Operator::Minus,
+                    TokenType::AdditionOp => Operator::Minus,
+                    TokenType::DivisionOp => Operator::Minus,
+                    TokenType::MultiplicationOp => Operator::Minus,
+                    TokenType::And => Operator::And,
+                    TokenType::Or => Operator::Or,
+                    _ => Operator::None,
+                };
+                if op == Operator::Minus {
+                    red_ln!(
+                        "Parsing Error: Cannot use mathematical operator in boolean expression"
+                    );
+                    panic!()
+                }
+                if op == Operator::None {
+                    ExpressionType::LiteralE {
+                        value: Literal::BooleanL {
+                            value: value.to_owned(),
+                        },
+                    }
+                } else {
+                    *cursor += 1;
+                    ExpressionType::BinaryE {
+                        op,
+                        lhs: Box::new(ExpressionType::LiteralE {
+                            value: Literal::BooleanL {
+                                value: value.to_owned(),
+                            },
+                        }),
+                        rhs: Box::new(parse_expression(token_vec, cursor)),
+                    }
+                }
+            }
+            TokenType::Identifier { identifier } => {
+                *cursor += 1;
+                let op = match token_vec[*cursor] {
+                    TokenType::SubtractionOp => Operator::Minus,
+                    TokenType::AdditionOp => Operator::Plus,
+                    TokenType::DivisionOp => Operator::Division,
+                    TokenType::MultiplicationOp => Operator::Multiplication,
+                    TokenType::And => Operator::Or,
+                    TokenType::Or => Operator::Or,
+                    _ => Operator::None,
+                };
+                if op == Operator::Or {
+                    red_ln!(
+                        "Parsing Error: Cannot use boolean operator in mathematical expression"
+                    );
+                    panic!()
+                }
+                if op == Operator::None {
+                    ExpressionType::Ident {
+                        value: identifier.to_string(),
+                    }
+                } else {
+                    *cursor += 1;
+                    ExpressionType::BinaryE {
+                        op,
+                        lhs: Box::from(ExpressionType::Ident {
+                            value: identifier.to_string(),
+                        }),
+                        rhs: Box::from(parse_expression(token_vec, cursor)),
+                    }
+                }
+            }
             TokenType::SubtractionOp => {
                 *cursor += 3;
                 if std::mem::discriminant(&token_vec[*cursor - 2])
@@ -36,7 +104,6 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     })
                 {
                     if &token_vec[*cursor - 1] != &TokenType::RParen {
-
                         ExpressionType::BinaryE {
                             op: match &token_vec[*cursor - 1] {
                                 TokenType::SubtractionOp => Operator::Minus,
@@ -133,7 +200,6 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                         _ => Operator::None,
                     };
                     *cursor += 1;
-                    //todo: Operator precedence
                     ExpressionType::BinaryE {
                         op: oper,
                         lhs: Box::new(lhs),
@@ -192,6 +258,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     TokenType::Identifier { identifier } => identifier,
                     _ => unreachable!(),
                 };
+                if id == "output" || id == "input" {
+                    red_ln!("Cannot overwrite I/O functions [input(), output()]");
+                    panic!("Cannot overwrite I/O functions [input(), output()]");
+                }
                 expect(vec![TokenType::Equal], &mut cursor);
                 let expression = parse_expression(&tokens, &mut cursor);
                 expect(vec![TokenType::Semicolon], &mut cursor);
@@ -213,6 +283,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     TokenType::Identifier { identifier } => identifier,
                     _ => unreachable!(),
                 };
+                if id == "output" || id == "input" {
+                    red_ln!("Cannot overwrite I/O functions [input(), output()]");
+                    panic!();
+                }
                 expect(vec![TokenType::Equal], &mut cursor);
                 expect(vec![TokenType::LParen], &mut cursor);
 
@@ -284,7 +358,9 @@ enum Operator {
     Minus,
     Multiplication,
     Division,
-    Negation,
+    Not,
+    And,
+    Or,
     None,
 }
 #[derive(Debug, PartialEq)]
