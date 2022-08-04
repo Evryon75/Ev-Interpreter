@@ -214,7 +214,7 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         }
         // Identifier
         if resulting_token == None && error == LexerErrorType::None {
-            if (" .?^'{[()]}+-/*!|;=\"".contains(next_char) || next_char == EOF_SYMBOL)
+            if (" ,.?^'{[()]}+-/*!|;=\"".contains(next_char) || next_char == EOF_SYMBOL)
                 && valid_identifier(token)
                 && !token.starts_with('\"')
                 && !token.is_empty()

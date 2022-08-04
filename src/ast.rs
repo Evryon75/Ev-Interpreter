@@ -14,19 +14,43 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
             if std::mem::discriminant(&tokens[*cursor]) == std::mem::discriminant(&token) {
                 received = true;
             }
+        }
+        if received {
+            *cursor += 1;
+        } else {
+            red_ln!(
+                    "Parsing Error: Unexpected Token [{:?}] expected: {:?}",
+                    &tokens[*cursor],
+                    token_types
+                );
+            panic!()
+        }
+    };
+    fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
+
+        let expect_expr = |token_types: Vec<TokenType>, cursor: &mut usize| {
+            let mut received = false;
+            for tok in &token_types {
+                if token_vec.len().eq(&cursor) {
+                    red_ln!("Parsing Error: Semicolon Expected");
+                    panic!()
+                }
+                if std::mem::discriminant(&token_vec[*cursor]) == std::mem::discriminant(&tok) {
+                    received = true;
+                }
+            }
             if received {
                 *cursor += 1;
             } else {
                 red_ln!(
                     "Parsing Error: Unexpected Token [{:?}] expected: {:?}",
-                    &tokens[*cursor],
+                    &token_vec[*cursor],
                     token_types
                 );
+                blue_ln!("NOTE: Only literal values, identifiers, and function calls are allowed as parameters, use a temp variable instead");
                 panic!()
             }
-        }
-    };
-    fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
+        };
         match &token_vec[*cursor] {
             TokenType::StringLiteral { value, .. } => {
                 *cursor += 1;
@@ -104,10 +128,25 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     );
                     panic!()
                 }
-                if op == Operator::None {
+                if op == Operator::None && token_vec[*cursor] != TokenType::LParen {
                     ExpressionType::Ident {
                         value: identifier.to_string(),
                     }
+                } else if token_vec[*cursor] == TokenType::LParen {
+                    *cursor += 1;
+                    let mut params_vec: Vec<ExpressionType> = vec![];
+
+                    loop {
+                        params_vec.push(parse_expression(token_vec, cursor));
+                        if token_vec[*cursor] != TokenType::RParen {
+                            expect_expr(vec![TokenType::Comma], cursor);
+                        } else {
+                            expect_expr(vec![TokenType::RParen], cursor);
+                            break;
+                        }
+                    }
+
+                    ExpressionType::FunctionCall { params: params_vec }
                 } else {
                     *cursor += 1;
                     ExpressionType::BinaryE {
@@ -215,9 +254,11 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 };
                 let mut oper = Operator::None;
                 *cursor += 1;
-                lhs = if vec![
+                if vec![
                     TokenType::DivisionOp,
                     TokenType::MultiplicationOp,
+                    TokenType::AdditionOp,
+                    TokenType::SubtractionOp,
                     TokenType::GreaterThan,
                     TokenType::LessThan,
                     TokenType::DoubleEqual,
@@ -227,6 +268,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     oper = match &token_vec[*cursor] {
                         TokenType::DivisionOp => Operator::Division,
                         TokenType::MultiplicationOp => Operator::Multiplication,
+                        TokenType::AdditionOp => Operator::Plus,
+                        TokenType::SubtractionOp => Operator::Minus,
                         TokenType::GreaterThan => Operator::Greater,
                         TokenType::LessThan => Operator::Less,
                         TokenType::DoubleEqual => Operator::DoubleEqual,
@@ -240,35 +283,6 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     }
                 } else {
                     lhs
-                };
-                let rhs: ExpressionType = if vec![
-                    TokenType::DivisionOp,
-                    TokenType::MultiplicationOp,
-                    TokenType::GreaterThan,
-                    TokenType::LessThan,
-                    TokenType::DoubleEqual,
-                ]
-                    .contains(&token_vec[*cursor])
-                {
-                    oper = match &token_vec[*cursor] {
-                        TokenType::SubtractionOp => Operator::Minus,
-                        TokenType::AdditionOp => Operator::Plus,
-                        _ => Operator::None,
-                    };
-                    *cursor += 1;
-                    parse_expression(token_vec, cursor)
-                } else {
-                    ExpressionType::None
-                };
-
-                if rhs == ExpressionType::None {
-                    lhs
-                } else {
-                    ExpressionType::BinaryE {
-                        op: oper,
-                        lhs: Box::from(lhs),
-                        rhs: Box::from(rhs),
-                    }
                 }
             }
             _ => {
@@ -284,7 +298,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
     let mut ast = AbstractSyntaxTree { program: vec![] };
 
     while cursor < tokens.len() {
-        match tokens[cursor] {
+        match &tokens[cursor] {
             TokenType::Let => {
                 expect(vec![TokenType::Let], &mut cursor);
                 expect(
@@ -441,6 +455,9 @@ enum ExpressionType {
     },
     Ident {
         value: String,
+    },
+    FunctionCall {
+        params: Vec<ExpressionType>,
     },
     None,
 }
