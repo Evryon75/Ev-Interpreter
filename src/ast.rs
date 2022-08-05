@@ -60,14 +60,6 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     },
                 }
             }
-            TokenType::Not => {
-                red_ln!(
-                    "The Ev programming language does not provide the \"Not\" [!] logical operator"
-                );
-                blue_ln!("Use this function instead:\nfun not = (param as bool) {\n   if param {\n      return false;\n   } else {\n      return true;\n   }\n}");
-                grey_ln!("You can also use a ternary operator: \"true ? false : true\"\nComing soon [maybe]");
-                panic!()
-            }
             TokenType::BooleanLiteral { value } => {
                 *cursor += 1;
                 let op = match token_vec[*cursor] {
@@ -77,6 +69,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     TokenType::MultiplicationOp => Operator::Minus,
                     TokenType::And => Operator::And,
                     TokenType::Or => Operator::Or,
+                    TokenType::GreaterThan => Operator::GreaterThan,
+                    TokenType::LessThan => Operator::LessThan,
                     TokenType::Ternary => Operator::Ternary,
                     _ => Operator::None,
                 };
@@ -118,16 +112,13 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     TokenType::AdditionOp => Operator::Plus,
                     TokenType::DivisionOp => Operator::Division,
                     TokenType::MultiplicationOp => Operator::Multiplication,
-                    TokenType::And => Operator::Or,
+                    TokenType::DoubleEqual => Operator::DoubleEqual,
+                    TokenType::And => Operator::And,
                     TokenType::Or => Operator::Or,
+                    TokenType::GreaterThan => Operator::GreaterThan,
+                    TokenType::LessThan => Operator::LessThan,
                     _ => Operator::None,
                 };
-                if op == Operator::Or {
-                    red_ln!(
-                        "Parsing Error: Cannot use boolean operator in mathematical expression"
-                    );
-                    panic!()
-                }
                 if op == Operator::None && token_vec[*cursor] != TokenType::LParen {
                     ExpressionType::Ident {
                         value: identifier.to_string(),
@@ -223,6 +214,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                         TokenType::MultiplicationOp,
                         TokenType::AdditionOp,
                         TokenType::SubtractionOp,
+                        TokenType::And,
+                        TokenType::Or,
+                        TokenType::DoubleEqual,
                     ]
                     .contains(&token_vec[*cursor])
                     {
@@ -231,6 +225,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                             TokenType::AdditionOp => Operator::Plus,
                             TokenType::DivisionOp => Operator::Division,
                             TokenType::MultiplicationOp => Operator::Multiplication,
+                            TokenType::And => Operator::And,
+                            TokenType::Or => Operator::Or,
+                            TokenType::DoubleEqual => Operator::DoubleEqual,
                             _ => unreachable!(),
                         };
                         *cursor += 1;
@@ -249,10 +246,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 }
             }
             TokenType::NumericLiteral { value, .. } => {
-                let mut lhs: ExpressionType = ExpressionType::LiteralE {
+                let lhs: ExpressionType = ExpressionType::LiteralE {
                     value: Literal::NumberL { value: *value },
                 };
-                let mut oper = Operator::None;
                 *cursor += 1;
                 if vec![
                     TokenType::DivisionOp,
@@ -265,7 +261,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 ]
                 .contains(&token_vec[*cursor])
                 {
-                    oper = match &token_vec[*cursor] {
+                    let oper = match &token_vec[*cursor] {
                         TokenType::DivisionOp => Operator::Division,
                         TokenType::MultiplicationOp => Operator::Multiplication,
                         TokenType::AdditionOp => Operator::Plus,
@@ -299,6 +295,21 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
 
     while cursor < tokens.len() {
         match &tokens[cursor] {
+            TokenType::If => {
+                expect(vec![TokenType::If], &mut cursor);
+                let condition = parse_expression(&tokens, &mut cursor);
+                magenta_ln!("{:#?}", condition);
+                expect(vec![TokenType::LBrace], &mut cursor);
+                //todo: parse block
+                expect(vec![TokenType::RBrace], &mut cursor);
+            }
+            TokenType::While => {
+                expect(vec![TokenType::While], &mut cursor);
+                let condition = parse_expression(&tokens, &mut cursor);
+                expect(vec![TokenType::LBrace], &mut cursor);
+                //todo: parse block
+                expect(vec![TokenType::RBrace], &mut cursor);
+            }
             TokenType::Let => {
                 expect(vec![TokenType::Let], &mut cursor);
                 expect(
@@ -388,7 +399,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 });
             }
             _ => {
-                println!("Parsing Error: Unexpected Token [{:?}]", &tokens[cursor]);
+                red_ln!("Parsing Error: Unexpected Token [{:?}]", &tokens[cursor]);
                 panic!()
             }
         }
@@ -407,6 +418,8 @@ impl AbstractSyntaxTree {}
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Operator {
+    GreaterThan,
+    LessThan,
     Ternary,
     Plus,
     Minus,
@@ -425,10 +438,7 @@ enum Node {
         param_type: PrimitiveType,
         param_identifier: String,
     },
-    Expression {
-        value: ExpressionType,
-    },
-    Statement,
+    Statement, //todo: {block: Vec<Node>}
     VariableDeclaration {
         value: ExpressionType,
         identifier: String,
@@ -459,7 +469,6 @@ enum ExpressionType {
     FunctionCall {
         params: Vec<ExpressionType>,
     },
-    None,
 }
 #[derive(Debug, PartialEq, Clone)]
 enum Literal {

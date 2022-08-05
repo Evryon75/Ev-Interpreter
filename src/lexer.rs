@@ -95,7 +95,14 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
             ";" => Semicolon,
             "||" => Or,
             "&&" => And,
-            "!" => Not,
+            "!" => {
+                red_ln!(
+                    "The Ev programming language does not provide the \"Not\" [!] logical operator"
+                );
+                blue_ln!("Use this function instead:\nfun not = (param as bool) {\n   if param {\n      return false;\n   } else {\n      return true;\n   }\n}");
+                grey_ln!("You can also use a ternary operator: \"true ? false : true\"\nComing soon [maybe]");
+                panic!()
+            },
             "+" => AdditionOp,
             "-" => SubtractionOp,
             "*" => MultiplicationOp,
