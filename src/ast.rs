@@ -126,14 +126,18 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     *cursor += 1;
                     let mut params_vec: Vec<ExpressionType> = vec![];
 
-                    loop {
-                        params_vec.push(parse_expression(token_vec, cursor));
-                        if token_vec[*cursor] != TokenType::RParen {
-                            expect_expr(vec![TokenType::Comma], cursor);
-                        } else {
-                            expect_expr(vec![TokenType::RParen], cursor);
-                            break;
+                    if token_vec[*cursor] != TokenType::RParen {
+                        loop {
+                            params_vec.push(parse_expression(token_vec, cursor));
+                            if token_vec[*cursor] != TokenType::RParen {
+                                expect_expr(vec![TokenType::Comma], cursor);
+                            } else {
+                                expect_expr(vec![TokenType::RParen], cursor);
+                                break;
+                            }
                         }
+                    } else {
+                        expect_expr(vec![TokenType::RParen], cursor);
                     }
 
                     ExpressionType::FunctionCall { params: params_vec }
