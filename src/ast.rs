@@ -2,7 +2,7 @@ use crate::ast::ExpressionType::UnaryE;
 use crate::lexer::{NumericLiteralType, PrimitiveType, TokenType};
 use colour::*;
 
-pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
+pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
     let mut cursor = 0;
     let expect = |token_types: Vec<TokenType>, cursor: &mut usize| {
         let mut received = false;
@@ -19,15 +19,14 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
             *cursor += 1;
         } else {
             red_ln!(
-                    "Parsing Error: Unexpected Token [{:?}] expected: {:?}",
-                    &tokens[*cursor],
-                    token_types
-                );
+                "Parsing Error: Unexpected Token [{:?}] expected: {:?}",
+                &tokens[*cursor],
+                token_types
+            );
             panic!()
         }
     };
     fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
-
         let expect_expr = |token_types: Vec<TokenType>, cursor: &mut usize| {
             let mut received = false;
             for tok in &token_types {
@@ -291,24 +290,110 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
         }
     }
 
-    let mut ast = AbstractSyntaxTree { program: vec![] };
+    let mut ast = AbstractSyntaxTree {
+        program: vec![],
+        global_scope: vec![],
+    };
 
-    while cursor < tokens.len() {
-        match &tokens[cursor] {
+    fn parse_statement<F: Fn(Vec<TokenType>, &mut usize) + Copy>(
+        tokens: &Vec<TokenType>,
+        mut cursor: &mut usize,
+        expect: F,
+    ) -> Node {
+        let expect_expr = |token_types: Vec<TokenType>, cursor: &mut usize| {
+            let mut received = false;
+            for tok in &token_types {
+                if tokens.len().eq(&cursor) {
+                    red_ln!("Parsing Error: Semicolon Expected");
+                    panic!()
+                }
+                if std::mem::discriminant(&tokens[*cursor]) == std::mem::discriminant(&tok) {
+                    received = true;
+                }
+            }
+            if received {
+                *cursor += 1;
+            } else {
+                red_ln!(
+                    "Parsing Error: Unexpected Token [{:?}] expected: {:?}",
+                    &tokens[*cursor],
+                    token_types
+                );
+                blue_ln!("NOTE: Only literal values, identifiers, and function calls are allowed as parameters, use a temp variable instead");
+                panic!()
+            }
+        };
+        match &tokens[*cursor] {
+            TokenType::Identifier { identifier } => {
+                *cursor += 1;
+                expect(vec![TokenType::Equal, TokenType::LParen], &mut cursor);
+                if tokens[*cursor - 1] == TokenType::Equal {
+                    let new_value = parse_expression(&tokens, &mut cursor);
+                    expect(vec![TokenType::Semicolon], &mut cursor);
+
+                    Node::VariableReassignment { identifier: identifier.to_string(), new_value }
+                } else if tokens[*cursor - 1] == TokenType::LParen {
+                    let mut params: Vec<ExpressionType> = vec![];
+
+                    loop {
+                        params.push(parse_expression(&tokens, cursor));
+                        if tokens[*cursor] != TokenType::RParen {
+                            expect_expr(vec![TokenType::Comma], cursor);
+                        } else {
+                            expect_expr(vec![TokenType::RParen], cursor);
+                            break;
+                        }
+                    }
+                    expect(vec![TokenType::Semicolon], &mut cursor);
+                    Node::ProcedureCall { identifier: identifier.to_string(), params }
+                } else {
+                    red_ln!("Parsing error: Expected \"=\" or \"(\"");
+                    panic!();
+                }
+            }
+            TokenType::Return => {
+                expect(vec![TokenType::Return], &mut cursor);
+                let res = parse_expression(&tokens, &mut cursor);
+                expect(vec![TokenType::Semicolon], &mut cursor);
+                Node::Return { value: res }
+            }
             TokenType::If => {
                 expect(vec![TokenType::If], &mut cursor);
                 let condition = parse_expression(&tokens, &mut cursor);
-                magenta_ln!("{:#?}", condition);
                 expect(vec![TokenType::LBrace], &mut cursor);
-                //todo: parse block
+                let mut block: Vec<Node> = vec![];
+                while tokens[*cursor] != TokenType::RBrace {
+                    block.push(parse_statement(tokens, cursor, expect));
+                }
                 expect(vec![TokenType::RBrace], &mut cursor);
+                let mut else_block: Vec<Node> = vec![];
+
+                if &tokens[*cursor] == &TokenType::Else {
+                    expect(vec![TokenType::Else], &mut cursor);
+                    expect(vec![TokenType::LBrace], &mut cursor);
+                    while tokens[*cursor] != TokenType::RBrace {
+                        else_block.push(parse_statement(tokens, cursor, expect));
+                    }
+                    expect(vec![TokenType::RBrace], &mut cursor);
+                }
+                expect(vec![TokenType::Semicolon], &mut cursor);
+                Node::If {
+                    condition,
+                    block,
+                    else_block,
+                }
             }
             TokenType::While => {
                 expect(vec![TokenType::While], &mut cursor);
                 let condition = parse_expression(&tokens, &mut cursor);
                 expect(vec![TokenType::LBrace], &mut cursor);
-                //todo: parse block
+                let mut block: Vec<Node> = vec![];
+                while tokens[*cursor] != TokenType::RBrace {
+                    block.push(parse_statement(tokens, cursor, expect));
+                }
                 expect(vec![TokenType::RBrace], &mut cursor);
+
+                Node::While { condition, block }
             }
             TokenType::Let => {
                 expect(vec![TokenType::Let], &mut cursor);
@@ -318,7 +403,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     }],
                     &mut cursor,
                 );
-                let id = match &tokens[cursor - 1] {
+                let id = match &tokens[*cursor - 1] {
                     TokenType::Identifier { identifier } => identifier,
                     _ => unreachable!(),
                 };
@@ -330,10 +415,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 let expression = parse_expression(&tokens, &mut cursor);
                 expect(vec![TokenType::Semicolon], &mut cursor);
 
-                ast.program.push(Node::VariableDeclaration {
+                Node::VariableDeclaration {
                     value: expression,
                     identifier: id.to_string(),
-                })
+                }
             }
             TokenType::Fun => {
                 expect(vec![TokenType::Fun], &mut cursor);
@@ -343,7 +428,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                     }],
                     &mut cursor,
                 );
-                let id = match &tokens[cursor - 1] {
+                let id = match &tokens[*cursor - 1] {
                     TokenType::Identifier { identifier } => identifier,
                     _ => unreachable!(),
                 };
@@ -355,14 +440,14 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                 expect(vec![TokenType::LParen], &mut cursor);
 
                 let mut params: Vec<Node> = vec![];
-                while tokens[cursor] != TokenType::RParen {
+                while tokens[*cursor] != TokenType::RParen {
                     expect(
                         vec![TokenType::Identifier {
                             identifier: "".to_string(),
                         }],
                         &mut cursor,
                     );
-                    let identifier = match &tokens[cursor - 1] {
+                    let identifier = match &tokens[*cursor - 1] {
                         TokenType::Identifier { identifier } => identifier,
                         _ => unreachable!(),
                     };
@@ -373,11 +458,11 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
                         }],
                         &mut cursor,
                     );
-                    let param_type = match &tokens[cursor - 1] {
+                    let param_type = match &tokens[*cursor - 1] {
                         TokenType::Primitive { primitive_type } => primitive_type.clone(),
                         _ => unreachable!(),
                     };
-                    if tokens[cursor] != TokenType::RParen {
+                    if tokens[*cursor] != TokenType::RParen {
                         expect(vec![TokenType::Comma], &mut cursor);
                     }
                     params.push(Node::Parameter {
@@ -388,36 +473,40 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) {
 
                 expect(vec![TokenType::RParen], &mut cursor);
                 expect(vec![TokenType::LBrace], &mut cursor);
+                let mut block: Vec<Node> = vec![];
+                while tokens[*cursor] != TokenType::RBrace {
+                    block.push(parse_statement(tokens, cursor, expect));
+                }
                 expect(vec![TokenType::RBrace], &mut cursor);
                 expect(vec![TokenType::Semicolon], &mut cursor);
 
-                ast.program.push(Node::FunctionDeclaration {
+                Node::FunctionDeclaration {
                     parameters: params,
                     identifier: id.to_string(),
-
-                    body: Box::new(Node::Statement),
-                });
+                    block,
+                }
             }
             _ => {
-                red_ln!("Parsing Error: Unexpected Token [{:?}]", &tokens[cursor]);
+                red_ln!("Parsing Error: Unexpected Token [{:?}]", &tokens[*cursor]);
                 panic!()
             }
         }
+    };
+
+    while cursor < tokens.len() {
+        ast.program
+            .push(parse_statement(&tokens, &mut cursor, expect));
     }
 
-    for i in ast.program {
-        yellow_ln!("{:#?}", i);
-    }
-    green_ln!("Parsing finished successfully")
+    green_ln!("Parsing finished successfully");
+    ast
 }
-
-struct AbstractSyntaxTree {
-    pub program: Vec<Node>,
+pub struct AbstractSyntaxTree {
+    pub(crate) program: Vec<Node>,
+    global_scope: Vec<Node>,
 }
-impl AbstractSyntaxTree {}
-
 #[derive(Debug, PartialEq, Clone, Copy)]
-enum Operator {
+pub enum Operator {
     GreaterThan,
     LessThan,
     Ternary,
@@ -433,12 +522,23 @@ enum Operator {
     None,
 }
 #[derive(Debug, PartialEq)]
-enum Node {
+pub enum Node {
     Parameter {
         param_type: PrimitiveType,
         param_identifier: String,
     },
-    Statement, //todo: {block: Vec<Node>}
+    Return {
+        value: ExpressionType,
+    },
+    If {
+        condition: ExpressionType,
+        block: Vec<Node>,
+        else_block: Vec<Node>,
+    },
+    While {
+        condition: ExpressionType,
+        block: Vec<Node>,
+    },
     VariableDeclaration {
         value: ExpressionType,
         identifier: String,
@@ -446,11 +546,19 @@ enum Node {
     FunctionDeclaration {
         parameters: Vec<Node>,
         identifier: String,
-        body: Box<Node>,
+        block: Vec<Node>,
+    },
+    VariableReassignment {
+        identifier: String,
+        new_value: ExpressionType,
+    },
+    ProcedureCall {
+        identifier: String,
+        params: Vec<ExpressionType>,
     },
 }
 #[derive(Debug, PartialEq, Clone)]
-enum ExpressionType {
+pub enum ExpressionType {
     LiteralE {
         value: Literal,
     },
@@ -471,7 +579,7 @@ enum ExpressionType {
     },
 }
 #[derive(Debug, PartialEq, Clone)]
-enum Literal {
+pub enum Literal {
     NumberL { value: f64 },
     StringL { value: String },
     BooleanL { value: bool },
