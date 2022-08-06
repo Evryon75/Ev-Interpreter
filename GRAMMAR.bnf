@@ -1,0 +1,43 @@
+<if-statement>	::=	"if" <expression> <statement>
+                |   "if" <expression> <statement> "else"  <statement>
+<while-statement>	::=	"while" <expression> <statement>
+
+<declaration-keyword> ::= "int" | "float" | "double" | "string" | "char" | "boolean" | "let"
+<parameter> ::= <expression> | <expression> "as" <declaration-keyword> | ""
+<parameter-list> ::= <parameter> | <parameter> "," <parameter-list>
+
+<function-declaration> ::= <declaration-keyword> IDENTIFIER "=" "(" <parameter-list> ")" <statement>
+                       |   IDENTIFIER "=" "(" <parameter-list> ")" <statement>
+<statement> ::= "{" <statement> "}"
+            | <if-statement>
+            | <while-statement>
+            | "return" <expression> ";"
+            | <declaration-keyword> IDENTIFIER "=" <expression> ";"
+            | <function-declaration>
+            | <expression> ";"
+            | ";"
+<expression> ::= IDENTIFIER
+             | INTEGER_LITERAL
+             | STRING_LITERAL
+             | BOOLEAN_LITERAL
+             | "(" <expression> ")"
+             | <expression> "[" <expression> "]"
+             | <expression> "(" <parameter-list> ")"
+             | <expression> "=" <expression>
+             | <expression> "+" <expression>
+             | <expression> "-" <expression>
+             | <expression> "+=" <expression>
+             | <expression> "-=" <expression>
+             | <expression> "||" <expression>
+             | <expression> "&&" <expression>
+             | <expression> "==" <expression>
+             | <expression> "!=" <expression>
+             | "@" <expression>
+             | "#" <expression>
+             | "-" <expression>
+             | "++" <expression>
+             | "--" <expression>
+             | "!" <expression>
+             | <expression> "++"
+             | <expression> "--"
+             | <expression> "?" <expression> ":" <expression>

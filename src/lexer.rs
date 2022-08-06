@@ -1,3 +1,4 @@
+use colour::*;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -5,10 +6,9 @@ const EOF_SYMBOL: char = '⨂';
 
 pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
     let mut tokens: Vec<TokenType> = Vec::new();
-    let parse_errors: Vec<LexerErrorType> = Vec::new();
+    let lexing_errors: Vec<LexerErrorType> = Vec::new();
 
-    let mut raw_input_vec: Vec<char> = Vec::new();
-    input.chars().for_each(|c| raw_input_vec.push(c));
+    let raw_input_vec: Vec<char> = input.chars().collect();
 
     let mut building_token: String = "".parse().unwrap();
     let mut cursor = 0;
@@ -31,193 +31,214 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
         );
 
         if analysis_result.1 == LexerErrorType::None {
-            if analysis_result.0 != TokenType::None {
+            if analysis_result.0 != TokenType::None && analysis_result.0 != TokenType::LineComment {
                 tokens.push(analysis_result.0);
+                building_token = "".parse().unwrap();
+            } else if analysis_result.0 == TokenType::LineComment {
                 building_token = "".parse().unwrap();
             }
         } else {
-            println!("Lexing Error: {:?}", analysis_result.1);
-            break;
+            red_ln!("Lexing Error: {:?}", analysis_result.1);
+            panic!();
         }
         cursor += 1;
     }
 
-    if parse_errors.len() > 0 {
-        Err(parse_errors)
+    if lexing_errors.len() > 0 {
+        Err(lexing_errors)
     } else {
         Ok(tokens)
     }
 }
 #[allow(unused_assignments)]
 fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType) {
-    use DeclarationKeywords::*;
     use TokenType::*;
 
     let mut resulting_token: TokenType = None;
     let mut error: LexerErrorType = LexerErrorType::None;
 
-    //Simple tokens
-    resulting_token = match token.as_str() {
-        "int" => DeclarationKeyword { keyword: Int },
-        "long" => DeclarationKeyword { keyword: Long },
-        "float" => DeclarationKeyword { keyword: Float },
-        "double" => DeclarationKeyword { keyword: Double },
-        "string" => DeclarationKeyword { keyword: String },
-        "char" => DeclarationKeyword { keyword: Char },
-        "let" => DeclarationKeyword { keyword: Let },
-        "bool" => DeclarationKeyword { keyword: Bool },
-        "struct" => DeclarationKeyword { keyword: Struct },
-        "class" => DeclarationKeyword { keyword: Class },
-        "(" => LParen,
-        ")" => RParen,
-        "[" => LBracket,
-        "]" => RBracket,
-        "{" => LBrace,
-        "}" => RBrace,
-        "==" => DoubleEqual,
-        ">=" => GreaterThanEqual,
-        "<=" => LessThanEqual,
-        ";" => Semicolon,
-        "||" => Or,
-        "&&" => And,
-        "!" => Not,
-        "//" => LineComment,
-        "+" => AdditionOp,
-        "-" => SubtractionOp,
-        "*" => MultiplicationOp,
-        ">>" => ArrowReturn,
-        "#" => Pointer,
-        "@" => Dereference,
-        "as" => Caster,
-        ":" => Colon,
-        "break" => Break,
-        "continue" => Continue,
-        "return" => Return,
-        "if" => If,
-        "else" => Else,
-        "for" => For,
-        "switch" => Switch,
-        "try" => Try,
-        "catch" => Catch,
-        "import" => Import,
-        "." => Dot,
-        "this" => This,
-        "?" => Ternary,
-        "," => Comma,
-        &_ => None,
-    };
-
-    // Could probably optimise by doing resulting_token = if token * and next token !* {one} else {two}
-    // but im unsure about the behaviour it could generate
-    if token == "/" && next_char != '/' {
-        resulting_token = DivisionOp;
-    }
-    if token == "|" && next_char != '|' {
-        resulting_token = TypeSeparator;
-    }
-    if token == "=" && next_char != '=' {
-        resulting_token = Equal;
-    }
-    if token == ">" && next_char != '=' {
-        resulting_token = GreaterThan;
-    }
-    if token == "<" && next_char != '=' {
-        resulting_token = LessThan;
-    }
-    //TODO Single character logical operators
-
-    // Numeric literals
-    if resulting_token == None && error == LexerErrorType::None {
-        let mut dot = false;
-        let mut valid_num = !token.is_empty(); // If its empty, default to false
-        token.trim().chars().for_each(|c| {
-            if !".0123456789".contains(c) {
-                valid_num = false;
+    if !token.trim().starts_with("//") {
+        //Simple tokens
+        resulting_token = match token.as_str() {
+            "fun" => Fun, //This means you cant have identifiers starting with "fun" or "let", etc
+            "let" => Let,
+            "int" => Primitive {
+                primitive_type: PrimitiveType::Int,
+            },
+            "long" => Primitive {
+                primitive_type: PrimitiveType::Long,
+            },
+            "float" => Primitive {
+                primitive_type: PrimitiveType::Float,
+            },
+            "double" => Primitive {
+                primitive_type: PrimitiveType::Double,
+            },
+            "string" => Primitive {
+                primitive_type: PrimitiveType::String,
+            },
+            "char" => Primitive {
+                primitive_type: PrimitiveType::Char,
+            },
+            "bool" => Primitive {
+                primitive_type: PrimitiveType::Bool,
+            },
+            "(" => LParen,
+            ")" => RParen,
+            "[" => LBracket,
+            "]" => RBracket,
+            "{" => LBrace,
+            "}" => RBrace,
+            "==" => DoubleEqual,
+            ">=" => GreaterThanEqual,
+            "<=" => LessThanEqual,
+            ";" => Semicolon,
+            "||" => Or,
+            "&&" => And,
+            "!" => {
+                red_ln!(
+                    "The Ev programming language does not provide the \"Not\" [!] logical operator"
+                );
+                blue_ln!("Use this function instead:\nfun not = (param as bool) {\n   if param {\n      return false;\n   } else {\n      return true;\n   };\n};");
+                panic!()
             }
-            if !dot {
-                if c == '.' {
-                    dot = true
+            "+" => AdditionOp,
+            "-" => SubtractionOp,
+            "*" => MultiplicationOp,
+            ":" => Colon,
+            "break" => Break,
+            "continue" => Continue,
+            "return" => Return,
+            "if" => If,
+            "else" => Else,
+            "while" => While,
+            "try" => Try,
+            "catch" => Catch,
+            "." => Dot,
+            "this" => This,
+            "?" => Ternary,
+            "," => Comma,
+            "true" => BooleanLiteral { value: true },
+            "false" => BooleanLiteral { value: false },
+            &_ => None,
+        };
+
+        // Could probably optimise by doing resulting_token = if token * and next token !* {one} else {two}
+        // but im unsure about the behaviour it could generate
+        if token == "/" && next_char != '/' {
+            resulting_token = DivisionOp;
+        }
+        if token == "|" && next_char != '|' {
+            resulting_token = TypeSeparator;
+        }
+        if token == "=" && next_char != '=' {
+            resulting_token = Equal;
+        }
+        if token == ">" && next_char != '=' {
+            resulting_token = GreaterThan;
+        }
+        if token == "<" && next_char != '=' {
+            resulting_token = LessThan;
+        }
+        if token == "as" && next_char == ' ' {
+            resulting_token = Caster;
+        }
+
+        // Numeric literals
+        if resulting_token == None && error == LexerErrorType::None {
+            let mut dot = false;
+            let mut valid_num = !token.is_empty(); // If its empty, default to false
+            token.trim().chars().for_each(|c| {
+                if !".0123456789".contains(c) {
+                    valid_num = false;
                 }
-            } else {
-                if c == '.' {
-                    error = LexerErrorType::InvalidFloatingPoint;
+                if !dot {
+                    if c == '.' {
+                        dot = true
+                    }
+                } else {
+                    if c == '.' {
+                        error = LexerErrorType::InvalidFloatingPoint;
+                        valid_num = false
+                    }
+                }
+                if token.starts_with('.') {
                     valid_num = false
                 }
-            }
-            if token.starts_with('.') {
-                valid_num = false
-            }
-        });
+            });
 
-        if !".0123456789".contains(next_char) && valid_num && !token.is_empty() {
-            resulting_token = NumericLiteral {
-                numeric_type: if token.contains('.') {
-                    let mut post_dot = false;
-                    let mut decimals = 0;
-                    token.chars().for_each(|c| {
-                        if post_dot {
-                            decimals += 1;
+            if !".0123456789".contains(next_char) && valid_num && !token.is_empty() {
+                resulting_token = NumericLiteral {
+                    numeric_type: if token.contains('.') {
+                        let mut post_dot = false;
+                        let mut decimals = 0;
+                        token.chars().for_each(|c| {
+                            if post_dot {
+                                decimals += 1;
+                            }
+                            if c == '.' && !post_dot {
+                                post_dot = true
+                            }
+                        });
+                        if decimals < 8 {
+                            NumericLiteralType::Float
+                        } else {
+                            NumericLiteralType::Double
                         }
-                        if c == '.' && !post_dot {
-                            post_dot = true
-                        }
-                    });
-                    if decimals < 8 {
-                        NumericLiteralType::Float
+                    } else if token.len() < 17 {
+                        NumericLiteralType::Int
                     } else {
-                        NumericLiteralType::Double
-                    }
-                } else if token.len() < 17 {
-                    NumericLiteralType::Int
-                } else {
-                    NumericLiteralType::Long
-                },
-                value: token.trim().parse::<f64>().unwrap(),
-            };
-        }
-    }
-    // String literals
-    if resulting_token == None && error == LexerErrorType::None {
-        // String literal
-        if token.starts_with('"') && token.ends_with('"') && token.len() > 1 {
-            resulting_token = StringLiteral {
-                string_type: StringLiteralType::String,
-                value: token.replace("\"", "").to_string(),
-            };
-        } else if token.starts_with('"') && next_char == EOF_SYMBOL {
-            error = LexerErrorType::StringLiteralDoesNotEnd;
-        }
-        if token.starts_with("'") && token.ends_with("'") && token.len() > 1 {
-            if token.len() < 4 {
-                resulting_token = StringLiteral {
-                    string_type: StringLiteralType::Char,
-                    value: token.replace("'", "").to_string(),
+                        NumericLiteralType::Long
+                    },
+                    value: token.trim().parse::<f64>().unwrap(),
                 };
-            } else {
-                error = LexerErrorType::CharIsTooLong
             }
-        } else if token.starts_with("'") && next_char == EOF_SYMBOL {
-            error = LexerErrorType::StringLiteralDoesNotEnd;
         }
-    }
-    // Identifier
-    if resulting_token == None && error == LexerErrorType::None {
-        if (" .?^'{[()]}+-/*!|;=\"".contains(next_char) || next_char == EOF_SYMBOL)
-            && valid_identifier(token)
-            && !token.starts_with('\"')
-            && !token.is_empty()
-            && token.is_ascii()
-        {
-            resulting_token = Identifier {
-                identifier: token.to_string(),
+        // String literals
+        if resulting_token == None && error == LexerErrorType::None {
+            // String literal
+            if token.starts_with('"') && token.ends_with('"') && token.len() > 1 {
+                resulting_token = StringLiteral {
+                    string_type: StringLiteralType::String,
+                    value: token.replace("\"", "").to_string(),
+                };
+            } else if token.starts_with('"') && next_char == EOF_SYMBOL {
+                error = LexerErrorType::StringLiteralDoesNotEnd;
             }
-        } else if !token.is_ascii() {
-            error = LexerErrorType::NonAsciiCharactersInIdentifier
+            if token.starts_with("'") && token.ends_with("'") && token.len() > 1 {
+                if token.len() < 4 {
+                    resulting_token = StringLiteral {
+                        string_type: StringLiteralType::Char,
+                        value: token.replace("'", "").to_string(),
+                    };
+                } else {
+                    error = LexerErrorType::CharIsTooLong
+                }
+            } else if token.starts_with("'") && next_char == EOF_SYMBOL {
+                error = LexerErrorType::StringLiteralDoesNotEnd;
+            }
         }
+        // Identifier
+        if resulting_token == None && error == LexerErrorType::None {
+            if (" ,.?^'{[()]}+-/*!|;=\"".contains(next_char) || next_char == EOF_SYMBOL)
+                && valid_identifier(token)
+                && !token.starts_with('\"')
+                && !token.is_empty()
+                && token.is_ascii()
+            {
+                resulting_token = Identifier {
+                    identifier: token.to_string(),
+                }
+            } else if !token.is_ascii() {
+                error = LexerErrorType::NonAsciiCharactersInIdentifier
+            }
+        }
+    } else if token.contains('\n') {
+        resulting_token = LineComment;
     }
 
     if next_char == EOF_SYMBOL {
-        println!("Lexing finished successfully");
+        green_ln!("Lexing finished successfully");
     }
     (resulting_token, error)
 }
@@ -226,7 +247,6 @@ fn valid_identifier(identifier: &str) -> bool {
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"[_a-zA-Z]\w{0,30}").unwrap());
     RE.is_match(identifier)
 }
-
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
     NumericLiteral {
@@ -240,9 +260,11 @@ pub enum TokenType {
     Identifier {
         identifier: String,
     },
-    DeclarationKeyword {
-        keyword: DeclarationKeywords,
+    BooleanLiteral {
+        value: bool,
     },
+    Let,
+    Fun,
     LParen,           // (
     RParen,           // )
     LBracket,         // [
@@ -258,16 +280,12 @@ pub enum TokenType {
     Semicolon,        // ;
     Or,               // ||
     And,              // &&
-    Not,              // !
     LineComment,      // //
     TypeSeparator,    // |
     AdditionOp,       // +
     SubtractionOp,    // -
     MultiplicationOp, // *
     DivisionOp,       // /
-    ArrowReturn,      // >>
-    Pointer,          // #
-    Dereference,      // @
     Caster,           // as
     Colon,            // :
     Break,            // break
@@ -275,29 +293,17 @@ pub enum TokenType {
     Return,           // return
     If,               // if
     Else,             // else
-    For,              // for
-    Switch,           // switch
+    While,            // while
     Try,              // try
     Catch,            // catch
-    Import,           // import
     Dot,              // dot
     This,             // this
     Ternary,          // ?
     Comma,            // ,
     None,             // No token found, gets removed later
-}
-#[derive(Debug, PartialEq)]
-pub enum DeclarationKeywords {
-    Class,  // class
-    Struct, // struct
-    Let,    // let
-    Bool,   // bool
-    Int,    // int
-    Float,  // float
-    Double, // double
-    Long,   // long
-    String, // string
-    Char,   // char
+    Primitive {
+        primitive_type: PrimitiveType,
+    },
 }
 #[derive(Debug, PartialEq)]
 pub enum NumericLiteralType {
@@ -318,4 +324,14 @@ pub enum LexerErrorType {
     CharIsTooLong,
     NonAsciiCharactersInIdentifier,
     None,
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum PrimitiveType {
+    Int,
+    Long,
+    Float,
+    Double,
+    String,
+    Char,
+    Bool,
 }
