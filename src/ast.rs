@@ -140,7 +140,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         expect_expr(vec![TokenType::RParen], cursor);
                     }
 
-                    ExpressionType::FunctionCall { params: params_vec }
+                    ExpressionType::FunctionCall { identifier: identifier.to_string(), params: params_vec }
                 } else {
                     *cursor += 1;
                     ExpressionType::BinaryE {
@@ -579,6 +579,7 @@ pub enum ExpressionType {
         value: String,
     },
     FunctionCall {
+        identifier: String,
         params: Vec<ExpressionType>,
     },
 }
