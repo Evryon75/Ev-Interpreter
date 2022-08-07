@@ -140,7 +140,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         expect_expr(vec![TokenType::RParen], cursor);
                     }
 
-                    ExpressionType::FunctionCall { identifier: identifier.to_string(), params: params_vec }
+                    ExpressionType::FunctionCall {
+                        identifier: identifier.to_string(),
+                        params: params_vec,
+                    }
                 } else {
                     *cursor += 1;
                     ExpressionType::BinaryE {
@@ -335,7 +338,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     let new_value = parse_expression(&tokens, &mut cursor);
                     expect(vec![TokenType::Semicolon], &mut cursor);
 
-                    Node::VariableReassignment { identifier: identifier.to_string(), new_value }
+                    Node::VariableReassignment {
+                        identifier: identifier.to_string(),
+                        new_value,
+                    }
                 } else if tokens[*cursor - 1] == TokenType::LParen {
                     let mut params: Vec<ExpressionType> = vec![];
 
@@ -349,7 +355,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         }
                     }
                     expect(vec![TokenType::Semicolon], &mut cursor);
-                    Node::ProcedureCall { identifier: identifier.to_string(), params }
+                    Node::ProcedureCall {
+                        identifier: identifier.to_string(),
+                        params,
+                    }
                 } else {
                     red_ln!("Parsing error: Expected \"=\" or \"(\"");
                     panic!();
@@ -443,7 +452,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                 expect(vec![TokenType::Equal], &mut cursor);
                 expect(vec![TokenType::LParen], &mut cursor);
 
-                let mut params: Vec<Node> = vec![];
+                let mut params: Vec<Parameter> = vec![];
                 while tokens[*cursor] != TokenType::RParen {
                     expect(
                         vec![TokenType::Identifier {
@@ -469,7 +478,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     if tokens[*cursor] != TokenType::RParen {
                         expect(vec![TokenType::Comma], &mut cursor);
                     }
-                    params.push(Node::Parameter {
+                    params.push(Parameter {
                         param_type,
                         param_identifier: identifier.to_string(),
                     });
@@ -507,7 +516,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
 }
 pub struct AbstractSyntaxTree {
     pub(crate) program: Vec<Node>,
-    global_scope: Vec<Node>,
+    pub(crate) global_scope: Vec<Node>,
 }
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Operator {
@@ -525,12 +534,13 @@ pub enum Operator {
     DoubleEqual,
     None,
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
+pub struct Parameter {
+    param_type: PrimitiveType,
+    param_identifier: String,
+}
+#[derive(Debug, PartialEq, Clone)]
 pub enum Node {
-    Parameter {
-        param_type: PrimitiveType,
-        param_identifier: String,
-    },
     Return {
         value: ExpressionType,
     },
@@ -548,7 +558,7 @@ pub enum Node {
         identifier: String,
     },
     FunctionDeclaration {
-        parameters: Vec<Node>,
+        parameters: Vec<Parameter>,
         identifier: String,
         block: Vec<Node>,
     },
