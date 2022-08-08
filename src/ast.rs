@@ -272,8 +272,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         TokenType::MultiplicationOp => Operator::Multiplication,
                         TokenType::AdditionOp => Operator::Plus,
                         TokenType::SubtractionOp => Operator::Minus,
-                        TokenType::GreaterThan => Operator::Greater,
-                        TokenType::LessThan => Operator::Less,
+                        TokenType::GreaterThan => Operator::GreaterThan,
+                        TokenType::LessThan => Operator::GreaterThan,
                         TokenType::DoubleEqual => Operator::DoubleEqual,
                         _ => Operator::None,
                     };
@@ -449,7 +449,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     TokenType::Identifier { identifier } => identifier,
                     _ => unreachable!(),
                 };
-                if id == "output" || id == "input" {
+                if id == "output" || id == "input" || id == "show_scopes" {
                     red_ln!("Cannot overwrite I/O functions [input(), output()]");
                     panic!();
                 }
@@ -468,22 +468,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         TokenType::Identifier { identifier } => identifier,
                         _ => unreachable!(),
                     };
-                    expect(vec![TokenType::Caster], &mut cursor);
-                    expect(
-                        vec![TokenType::Primitive {
-                            primitive_type: PrimitiveType::Int,
-                        }],
-                        &mut cursor,
-                    );
-                    let param_type = match &tokens[*cursor - 1] {
-                        TokenType::Primitive { primitive_type } => primitive_type.clone(),
-                        _ => unreachable!(),
-                    };
                     if tokens[*cursor] != TokenType::RParen {
                         expect(vec![TokenType::Comma], &mut cursor);
                     }
                     params.push(Parameter {
-                        param_type,
                         param_identifier: identifier.to_string(),
                     });
                 }
@@ -508,7 +496,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                 panic!()
             }
         }
-    };
+    }
 
     while cursor < tokens.len() {
         ast.program
@@ -534,15 +522,12 @@ pub enum Operator {
     Division,
     And,
     Or,
-    Greater,
-    Less,
     DoubleEqual,
     None,
 }
 #[derive(Debug, PartialEq, Clone)]
 pub struct Parameter {
-    param_type: PrimitiveType,
-    param_identifier: String,
+    pub param_identifier: String,
 }
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {

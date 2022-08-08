@@ -1,4 +1,5 @@
 extern crate core;
+
 use crate::ast::parse_tokens;
 use crate::lexer::tokenize;
 use crate::walker::walk;
@@ -23,24 +24,42 @@ fn main() {
     walk(ast.clone()); //This was a one-liner but i needed these fields for debug information, and its cleaner too
 
     green_ln!("Process: finished successfully ✔");
-    grey_ln!("Press [ENTER] to close, or input \"DEBUG\" to access debug information");
+
+    //Tribute to Somewhere City
+    magenta_ln!(
+        "Thank you for checking out this project! ✨\n\
+    I learned a lot about language development and Rust.\n\
+    This project was infused with the album ⪧\"Somewhere City\"\n\
+    by ⪧\"Origami Angel\", give it a listen! 🎶\n\
+    ⪼https://www.youtube.com/watch?v=lNosH1DEPkQ⪻"
+    );
+
+    white_ln!("Press [ENTER] to close, or input \"DEBUG\" to access debug information");
+    grey_ln!("Both \"DEBUG\" and \"debug\" will work");
     let mut close_terminal = String::new();
-    stdin().read_line(&mut close_terminal).expect("Something went wrong when taking input");
-    if close_terminal == "DEBUG\n".to_string() {
-        while !close_terminal.eq("EXIT\n") {
-            grey_ln!("Input \"TOKENS\" to see the stream of tokens\nInput \"AST\" to show the abstract syntax tree\nInput \"EXIT\" to exit the program");
+    stdin()
+        .read_line(&mut close_terminal)
+        .expect("Something went wrong when taking input");
+    if close_terminal.eq_ignore_ascii_case("DEBUG\n") {
+        white_ln!("Input \"TOKENS\" to see the stream of tokens\nInput \"AST\" to show the abstract syntax tree\nInput \"EXIT\" to exit the program");
+        while !close_terminal.eq_ignore_ascii_case("EXIT\n") {
             close_terminal = "".to_string();
-            stdin().read_line(&mut close_terminal).expect("Something went wrong when taking input");
-            if close_terminal == "TOKENS\n" {
+            stdin()
+                .read_line(&mut close_terminal)
+                .expect("Something went wrong when taking input");
+            if close_terminal.eq_ignore_ascii_case("TOKENS\n") {
                 let mut index = 0;
                 for i in &tokens {
-                    magenta_ln!("Index: {} > Value: {:#?}", index,  i);
+                    magenta_ln!("Index: {} > Value: {:#?}", index, i);
                     index += 1;
                 }
-            } else if close_terminal == "AST\n" {
+            } else if close_terminal.eq_ignore_ascii_case("AST\n") {
                 for i in &ast.program {
                     yellow_ln!("Node: {:#?}", i);
                 }
+            }
+            if !close_terminal.eq_ignore_ascii_case("EXIT\n") {
+                grey_ln!("[TOKENS] [AST] [EXIT]");
             }
         }
     }
