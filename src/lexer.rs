@@ -238,7 +238,7 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
     }
 
     if next_char == EOF_SYMBOL {
-        green_ln!("Lexing finished successfully");
+        green_ln!("Lexing:  finished successfully ✔");
     }
     (resulting_token, error)
 }
@@ -247,7 +247,7 @@ fn valid_identifier(identifier: &str) -> bool {
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"[_a-zA-Z]\w{0,30}").unwrap());
     RE.is_match(identifier)
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenType {
     NumericLiteral {
         numeric_type: NumericLiteralType,
@@ -305,19 +305,19 @@ pub enum TokenType {
         primitive_type: PrimitiveType,
     },
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum NumericLiteralType {
     Int,    // i32
     Float,  // f32
     Double, // f64
     Long,   // i64
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum StringLiteralType {
     String,
     Char,
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum LexerErrorType {
     InvalidFloatingPoint,
     StringLiteralDoesNotEnd,

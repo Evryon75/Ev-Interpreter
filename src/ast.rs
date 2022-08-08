@@ -345,14 +345,18 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                 } else if tokens[*cursor - 1] == TokenType::LParen {
                     let mut params: Vec<ExpressionType> = vec![];
 
-                    loop {
-                        params.push(parse_expression(&tokens, cursor));
-                        if tokens[*cursor] != TokenType::RParen {
-                            expect_expr(vec![TokenType::Comma], cursor);
-                        } else {
-                            expect_expr(vec![TokenType::RParen], cursor);
-                            break;
+                    if tokens[*cursor] != TokenType::RParen {
+                        loop {
+                            params.push(parse_expression(&tokens, cursor));
+                            if tokens[*cursor] != TokenType::RParen {
+                                expect_expr(vec![TokenType::Comma], cursor);
+                            } else {
+                                expect_expr(vec![TokenType::RParen], cursor);
+                                break;
+                            }
                         }
+                    } else {
+                        *cursor += 1;
                     }
                     expect(vec![TokenType::Semicolon], &mut cursor);
                     Node::ProcedureCall {
@@ -511,9 +515,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
             .push(parse_statement(&tokens, &mut cursor, expect));
     }
 
-    green_ln!("Parsing finished successfully");
+    green_ln!("Parsing: finished successfully ✔");
     ast
 }
+#[derive(Debug, PartialEq, Clone)]
 pub struct AbstractSyntaxTree {
     pub(crate) program: Vec<Node>,
     pub(crate) global_scope: Vec<Node>,

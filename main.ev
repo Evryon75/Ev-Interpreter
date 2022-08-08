@@ -1,5 +1,5 @@
 let x = 5;
-
-fun y = (s as float) {
-    let z = s;
+fun y = () {
+    let z = 3;
 };
+output("Hello world,", "welcome to Ev!");
