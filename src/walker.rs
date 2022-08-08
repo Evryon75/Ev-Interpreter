@@ -1,9 +1,7 @@
 use crate::ast::{AbstractSyntaxTree, ExpressionType, Literal, Node, Operator, Parameter};
 use colour::*;
 use std::collections::HashMap;
-use std::env::var;
 use std::io::stdin;
-use std::num::ParseFloatError;
 
 pub(crate) fn walk(ast: AbstractSyntaxTree) {
     let mut variables: Vec<HashMap<String, Expression>> = vec![];
@@ -687,8 +685,8 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
     }
     fn print(
         params: &Vec<ExpressionType>,
-        mut variables: &mut Vec<HashMap<String, Expression>>,
-        mut functions: &mut Vec<HashMap<String, Function>>,
+        variables: &mut Vec<HashMap<String, Expression>>,
+        functions: &mut Vec<HashMap<String, Function>>,
     ) {
         for i in params {
             let result = walk_expression(i, variables, functions);

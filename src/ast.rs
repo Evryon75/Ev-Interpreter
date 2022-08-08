@@ -1,5 +1,5 @@
 use crate::ast::ExpressionType::UnaryE;
-use crate::lexer::{NumericLiteralType, PrimitiveType, TokenType};
+use crate::lexer::{NumericLiteralType, TokenType};
 use colour::*;
 
 pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
