@@ -34,7 +34,7 @@ builtin functions:
   - scope() [Shows the variables and functions in that scope at that moment]
   - input("num" or "str") [takes input and converts it to a num or a string]
   - output(params) [prints the parameters]
-  - free(param) [frees a variable from memory]
+  - free(param) [frees a variable or function from memory, useful for recursion]
   
 quirks about the language:
   - expressions are evaluated from right to left 
