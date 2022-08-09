@@ -76,7 +76,8 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
                 red_ln!(
                     "The Ev programming language does not provide the \"Not\" [!] logical operator" //I tried
                 );
-                blue_ln!(                    "fun not = (param) {
+                blue_ln!(
+                    "fun not = (param) {
     let result = false;
     if param {
         result = false;
@@ -84,7 +85,8 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         result = true;
     };
     return result;
-};");
+};"
+                );
                 panic!()
             }
             "+" => AdditionOp,

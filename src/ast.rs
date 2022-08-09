@@ -58,7 +58,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
             //Matching the first token to see what the next step should be
             TokenType::StringLiteral { value, .. } => {
                 *cursor += 1;
-                if token_vec[*cursor] != TokenType::LBrace && token_vec[*cursor] != TokenType::RParen {
+                if token_vec[*cursor] != TokenType::LBrace
+                    && token_vec[*cursor] != TokenType::RParen
+                {
                     let op = match token_vec[*cursor] {
                         TokenType::SubtractionOp => Operator::Minus,
                         TokenType::AdditionOp => Operator::Plus,
@@ -74,14 +76,12 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     *cursor += 1;
                     ExpressionType::BinaryE {
                         op,
-                        lhs: Box::new(
-                            ExpressionType::LiteralE {
-                                value: Literal::StringL {
-                                    value: value.to_string(),
-                                },
-                            }
-                        ),
-                        rhs: Box::new(parse_expression(token_vec, cursor))
+                        lhs: Box::new(ExpressionType::LiteralE {
+                            value: Literal::StringL {
+                                value: value.to_string(),
+                            },
+                        }),
+                        rhs: Box::new(parse_expression(token_vec, cursor)),
                     }
                 } else {
                     ExpressionType::LiteralE {

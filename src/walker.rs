@@ -718,31 +718,45 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
             }
             ExpressionType::FunctionCall { identifier, params } => {
                 if identifier.eq("input") {
+                    if params.len() == 0 {
+                        red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                        panic!()
+                    }
                     let mut x = String::from("");
-                    let mut c = String::from("");
                     stdin().read_line(&mut x).unwrap();
-                    println!("Conversion options: 0 > NUMBER, 1 > STRING");
-                    stdin().read_line(&mut c).unwrap();
-                    match c.as_str() {
-                        "0\n" => VarType::NumExpr {
+                    match (match &params[0] {
+                        ExpressionType::LiteralE { value } => {match value {
+                            Literal::NumberL { .. } => {
+                                red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                                panic!()}
+                            Literal::StringL { value } => value,
+                            Literal::BooleanL { .. } => {
+                                red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                                panic!()}
+                        }}
+                        _ => {
+                            red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                            panic!()
+                        }
+                    }).as_str() {
+                        "num" => VarType::NumExpr {
                             value: match x.replace("\n", "").parse::<f32>() {
                                 Ok(_) => x.replace("\n", "").parse::<f32>().unwrap(),
                                 Err(_) => {
                                     red_ln!(
                                         "Walking error: you cannot convert letters to a number"
                                     );
+                                    grey_ln!("This includes empty spaces");
                                     panic!()
                                 }
                             },
                         },
-                        "1\n" => VarType::StrExpr {
+                        "str" => VarType::StrExpr {
                             value: x.replace("\n", "").to_string(),
                         },
                         _ => {
-                            grey_ln!("Conversion failed, defaulting to STRING");
-                            VarType::StrExpr {
-                                value: x.replace("\n", "").to_string(),
-                            }
+                            red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                            panic!()
                         }
                     }
                 } else if identifier.eq("random_f") || identifier.eq("random") {
