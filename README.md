@@ -2,9 +2,9 @@
 An interpreter for the Ev programming language, my own language!
 Documentation:
 if:
-  >if condition {
-    >stuff
-  >};
+  if condition {\n
+    stuff\n
+  };
   if condition {
     stuff
   } else {
