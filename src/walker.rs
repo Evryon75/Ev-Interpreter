@@ -435,6 +435,7 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                 red_ln!(
                                     "Walking error: Cannot apply the plus operator on a String"
                                 );
+                                grey_ln!("Consider using the concat(\"p1\", \"p2\", \"etc\") function");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
@@ -682,7 +683,7 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                         VarType::BoolExpr { value: l == r }
                     }
                     Operator::None => {
-                        red_ln!("The operator is Null somehow, if you see this something is seriously wrong");
+                        red_ln!("Walking error: the operator is Null");
                         panic!()
                     }
                 };
@@ -717,7 +718,22 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                 res
             }
             ExpressionType::FunctionCall { identifier, params } => {
-                if identifier.eq("input") {
+                if identifier.eq("concat") {
+                    let mut st = String::new();
+                    for i in params {
+                        match walk_expression(i, variables, functions) {
+                            VarType::None => String::from("Null"),
+                            VarType::StrExpr { value } => value.to_string(),
+                            VarType::BoolExpr { value } => value.to_string(),
+                            VarType::NumExpr { value } => value.to_string(),
+                        }.chars().for_each(|c| {
+                            st.push(c);
+                        });
+                    }
+                    VarType::StrExpr {
+                        value: st.to_string(),
+                    }
+                } else if identifier.eq("input") {
                     if params.len() == 0 {
                         red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
                         panic!()

@@ -61,6 +61,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                 if token_vec[*cursor] != TokenType::LBrace
                     && token_vec[*cursor] != TokenType::RParen
                     && token_vec[*cursor] != TokenType::Semicolon
+                    && token_vec[*cursor] != TokenType::Comma
                 {
                     let op = match token_vec[*cursor] {
                         TokenType::SubtractionOp => Operator::Minus,
@@ -459,7 +460,13 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     TokenType::Identifier { identifier } => identifier,
                     _ => unreachable!(),
                 };
-                if id == "output" || id == "input" {
+                if id == "output"
+                    || id == "input"
+                    || id == "scopes"
+                    || id == "free"
+                    || id == "random"
+                    || id == "concat"
+                {
                     red_ln!("Cannot overwrite I/O functions [input(), output()]");
                     panic!();
                 }
@@ -490,6 +497,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     || id == "scopes"
                     || id == "free"
                     || id == "random"
+                    || id == "concat"
                 {
                     red_ln!("Cannot overwrite builtin functions [input(), output(), scopes(), free(), random()]");
                     panic!();

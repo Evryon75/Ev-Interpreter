@@ -1,2 +1,4 @@
-let s = "hi";
-output(s);
+let h = "hello, ";
+let w = "world!";
+let hw = concat(h, w, " Welcome to Ev!");
+output(hw);
