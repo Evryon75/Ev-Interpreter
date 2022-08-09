@@ -1,0 +1,3 @@
+if "hru" == "hru" {
+    output("yes");
+};
