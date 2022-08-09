@@ -36,6 +36,6 @@ builtin functions:
   - free(param) [frees a variable from memory]
   
 quirks about the language:
-  - expressions are evaluated from left to right 
+  - expressions are evaluated from right to left 
   - there is no operator precedence, you can use (grouping)
   - you can declare functions inside other functions and they will be in that scope
