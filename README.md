@@ -35,6 +35,7 @@ builtin functions:
   - input("num" or "str") [takes input and converts it to a num or a string]
   - output(params) [prints the parameters]
   - free(param) [frees a variable or function from memory, useful for recursion]
+  - abort(message) [stops the program and displays a message]
   
 quirks about the language:
   - expressions are evaluated from right to left 
