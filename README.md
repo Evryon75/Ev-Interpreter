@@ -5,28 +5,28 @@ if:<br/>
 --if condition {<br/>
 ----stuff<br/>
 --};<br/>
-  if condition {<br/>
-    stuff<br/>
-  } else {<br/>
-    other stuff<br/>
-  };<br/>
+--if condition {<br/>
+----stuff<br/>
+--} else {<br/>
+----other stuff<br/>
+--};<br/>
   
 while:<br/>
-  while condition {
-    stuff
-  }
+--while condition {<br/>
+----stuff<br/>
+--}<br/>
 
-variables:
-  let identifier = expression;
-  e.g. let x = 5;
+variables:<br/>
+--let identifier = expression;<br/>
+--e.g. let x = 5;<br/>
  
-functions:
-  fun identifier = (parameters) {
-    stuff
-    return expression;
-  }
-  e.g. fun add = (x, y) {
-          return x + y;
+functions:<br/>
+--fun identifier = (parameters) {<br/>
+----stuff<br/>
+----return expression;<br/>
+--}<br/>
+--e.g. fun add = (x, y) {<br/>
+---------return x + y;<br/>
 
 builtin functions:
   - random(origin, range) [generates a random number between the origin and the range]
