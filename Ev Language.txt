@@ -1,0 +1,121 @@
+OLD DOCUMENT, NOT UP TO DATE
+
+// Main function
+
+	// The main function can be named anything as long as it has the [Start]
+	tag in front of it
+	e.g. [Start] mainFunction = () { output("Hello, World!"); };
+
+// Tags
+
+	/ Tags give special properties to a variable, object, function, or class that receives it
+	they all come from the "Tag" Class/NameSpace (still thinking about that)
+	e.g. [Tag.Scope("../../physics/linear algebra/")] Matrix matrixMultiplication = 
+	(matrix1 as Matrix, matrix2 as Matrix) >> matrix1 * matrix2; // Supports operator overloading 
+	This limits the scope of this function to the given path
+	Tags can be used either by importing the desired tag, using it through Tag, or importing the 		
+	whole Class/NameSpace 
+	e.g. [Tag.Start] | import Tag.Start; [Start] | import Tag; [Start, CollectGarbage] /
+
+	/ Tag ideas
+	Start > Main function, can be applied to anything, e.g. [Tag.Start] output("Hello, World!"); < End of the program
+	Scope() > Defines the scope
+	CollectGarbage > Enables the garbage collector in the scope or for specific variable
+	/
+
+// Variable declaration
+
+	// Only values of a valid type can be assigned to this variable
+	TYPE staticallyTypedVariable = TYPE_VALUE; 
+	// e.g. int x = 0; x = 5; x = MathLib.sine(90);
+
+	// Any type of value can be assigned to this variable
+	let dynamicallyTypedVariable = ANY_VALUE; 
+	// e.g. let x = 0; x = "hello"; x = new Vector(2, 4);
+
+// Function declaration
+
+	// Can only return said type
+	RETURN_TYPE staticallyTypedReturnType = (parameters) { BODY }; 
+	/ e.g. 
+	string numAndName = (num as int|float|double, name as string) { 
+	string result = name + num.toString;
+	return result; };
+	/
+
+	// Can return any type
+	let dynamicallyTypedReturnType = (parameters) { BODY };
+	/ e.g. 
+	let nameOrNum = (name as string, num as int|float|double, choice as boolean) {
+	let result = choice ? name : num; 
+	return result;
+	}
+	/
+
+	// Procedure declaration
+	procedureName = (parameters) { BODY }; // No type
+	/ e.g. 
+	printTheParameter = (parameter) {
+	output(parameter); };
+	printTheParameter("Hello, World!"); 
+	/
+
+	// Single instruction functions
+	let functionName = (parameters) >> instruction;
+	/ e.g. 
+	double doubleTheParameter = (num as int|float|double) >> num * 2;
+	/
+	// In single instruction functions there is no need for a return statement
+
+// Parameter types
+
+	/ Parameters can be left to be any value or have their value be specified with the "as" keyword
+	then we can have it be multiple types with the "|" character
+	e.g. procedureName = (number as int|float|double) { BODY };
+	see // Types for more info on the number types hierarchy
+
+// Input and Output
+
+	/ The output function can have a second parameter, describing the additional information about 		
+	how we would like to print something /
+	output("Hello, world!"); > Single line output
+	output("Hello, world!", OutPutMode.SINGLE_LINE); > Single line output
+	output("Hello, world!", OutPutMode.SAME_LINE); > Same line output
+				[etc.]
+
+	/ The input function can take a parameter than will be output as a query, it will return an input type that has functions
+	to convert its value to an integer, float, string, etc /
+
+// Types
+	// int, float, and double
+	/ These 3 have a hierarchy, for example, an int can be taken as a double but a double cannot be 		
+	taken as float. There is no need to specify every number type when defining a parameter for a 			
+	function, it is enough to specify the highest type of the hierarchy we can take as one 
+	e.g. let procedureName = (num as float) { BODY }; will be able to take int and float types, but not 		
+	doubles /
+
+// Notes
+	
+	// Everything is a declaration, therefore every line needs a semicolon to end
+	// By default there is no garbage collection, but it can be enabled with the CollectGarbage tag
+	// Pointer system similar to C++
+
+// Keywords
+	
+	// if condition { BODY }; 
+	/ if condition & / && (condition | / || condition) >> output("Hello, world!", 1) 
+	else >> if condition >> output("Goodbye, world."); /
+	// for (int i = 0; i < 10; i++) >> output(i);
+	// foreach num in numArray >> output(num); foreach num as float in numArray >> output(num);
+	// while condition { BODY }; 
+	// switch variable { case 1 >> 1; case 2 >> 2; }; switch variable { case 1: break; case 2: break; }
+
+// Classes & OOP
+
+	/ Every attribute is by default private, and has by default a setter and a getter method, without 
+	needing to declare them manually, if however they need modification they can be manually 			
+	written, and they will override the default behaviour /
+
+let functionName = (param) {
+    statement
+};

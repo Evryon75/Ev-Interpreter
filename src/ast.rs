@@ -2,9 +2,11 @@ use crate::ast::ExpressionType::UnaryE;
 use crate::lexer::{NumericLiteralType, TokenType};
 use colour::*;
 
+//STEP TWO: Parsing
 pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
     let mut cursor = 0;
     let expect = |token_types: Vec<TokenType>, cursor: &mut usize| {
+        //Expecting tokens shapes up the syntax
         let mut received = false;
         for token in &token_types {
             if tokens.len().eq(&cursor) {
@@ -26,8 +28,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
             panic!()
         }
     };
+    //Possibly the most complex step of parsing, reading expressions
     fn parse_expression(token_vec: &Vec<TokenType>, cursor: &mut usize) -> ExpressionType {
         let expect_expr = |token_types: Vec<TokenType>, cursor: &mut usize| {
+            //Redefining the expect closure for easier access
             let mut received = false;
             for tok in &token_types {
                 if token_vec.len().eq(&cursor) {
@@ -51,6 +55,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
             }
         };
         match &token_vec[*cursor] {
+            //Matching the first token to see what the next step should be
             TokenType::StringLiteral { value, .. } => {
                 *cursor += 1;
                 ExpressionType::LiteralE {
@@ -70,7 +75,6 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     TokenType::Or => Operator::Or,
                     TokenType::GreaterThan => Operator::GreaterThan,
                     TokenType::LessThan => Operator::LessThan,
-                    TokenType::Ternary => Operator::Ternary,
                     _ => Operator::None,
                 };
                 if op == Operator::Minus {
@@ -297,11 +301,13 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
         }
     }
 
+    //This will be the result of this function
     let mut ast = AbstractSyntaxTree {
         program: vec![],
         global_scope: vec![],
     };
 
+    //This function adds the basic nodes to the tree, it understanding the required based on the first token
     fn parse_statement<F: Fn(Vec<TokenType>, &mut usize) + Copy>(
         tokens: &Vec<TokenType>,
         mut cursor: &mut usize,
@@ -409,6 +415,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     block.push(parse_statement(tokens, cursor, expect));
                 }
                 expect(vec![TokenType::RBrace], &mut cursor);
+                expect(vec![TokenType::Semicolon], &mut cursor);
 
                 Node::While { condition, block }
             }
@@ -449,8 +456,14 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     TokenType::Identifier { identifier } => identifier,
                     _ => unreachable!(),
                 };
-                if id == "output" || id == "input" || id == "show_scopes" {
-                    red_ln!("Cannot overwrite I/O functions [input(), output()]");
+                //Protecting builtin functions
+                if id == "output"
+                    || id == "input"
+                    || id == "scopes"
+                    || id == "free"
+                    || id == "random"
+                {
+                    red_ln!("Cannot overwrite builtin functions [input(), output(), scopes(), free(), random()]");
                     panic!();
                 }
                 expect(vec![TokenType::Equal], &mut cursor);
@@ -498,14 +511,17 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
         }
     }
 
+    //Analyze the token stream
     while cursor < tokens.len() {
         ast.program
             .push(parse_statement(&tokens, &mut cursor, expect));
     }
 
     green_ln!("Parsing: finished successfully ✔");
+    //Return
     ast
 }
+//Main struct
 #[derive(Debug, PartialEq, Clone)]
 pub struct AbstractSyntaxTree {
     pub(crate) program: Vec<Node>,
@@ -529,6 +545,7 @@ pub enum Operator {
 pub struct Parameter {
     pub param_identifier: String,
 }
+//Tree nodes
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {
     Return {

@@ -2,25 +2,23 @@ use colour::*;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-const EOF_SYMBOL: char = '⨂';
-
+const EOF_SYMBOL: char = '⨂'; //Used for safer parsing in some cases
+                              //STEP ONE: Tokenization
 pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
-    let mut tokens: Vec<TokenType> = Vec::new();
-    let lexing_errors: Vec<LexerErrorType> = Vec::new();
-
-    let raw_input_vec: Vec<char> = input.chars().collect();
-
-    let mut building_token: String = "".parse().unwrap();
+    let mut tokens: Vec<TokenType> = Vec::new(); //Storing tokens
+    let lexing_errors: Vec<LexerErrorType> = Vec::new(); //Storing errors
+    let raw_input_vec: Vec<char> = input.chars().collect(); //Collecting raw input into characters
+    let mut building_token: String = "".parse().unwrap(); //String reading the raw input
     let mut cursor = 0;
     while cursor < raw_input_vec.len() {
-        building_token.push(raw_input_vec[cursor]);
-        if building_token.as_str() == " "
+        building_token.push(raw_input_vec[cursor]); //Read
+        if building_token.as_str() == " " //Ignore these sequences
             || building_token.as_str() == "\n"
             || building_token.as_str() == "\r"
         {
             building_token = "".parse().unwrap();
         }
-
+        //Storing the result of the analysis
         let analysis_result = analyze_token(
             &building_token,
             if cursor < raw_input_vec.len() - 1 {
@@ -29,7 +27,7 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
                 EOF_SYMBOL
             },
         );
-
+        //If everything is successful (not a comment, not "None", and no errors) save the token
         if analysis_result.1 == LexerErrorType::None {
             if analysis_result.0 != TokenType::None && analysis_result.0 != TokenType::LineComment {
                 tokens.push(analysis_result.0);
@@ -38,55 +36,34 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
                 building_token = "".parse().unwrap();
             }
         } else {
+            //Show possible errors
             red_ln!("Lexing Error: {:?}", analysis_result.1);
             panic!();
         }
         cursor += 1;
     }
-
+    green_ln!("Lexing: finished successfully ✔");
+    //Return the result of the tokenization
     if lexing_errors.len() > 0 {
         Err(lexing_errors)
     } else {
         Ok(tokens)
     }
 }
-#[allow(unused_assignments)]
 fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType) {
-    use TokenType::*;
-
+    use TokenType::*; //For cleaner looking code
+                      //Default state
     let mut resulting_token: TokenType = None;
     let mut error: LexerErrorType = LexerErrorType::None;
-
     if !token.trim().starts_with("//") {
+        //If there is a comment ignore all until the next line
         //Simple tokens
         resulting_token = match token.as_str() {
+            //First basic check for simple tokens
             "fun" => Fun, //This means you cant have identifiers starting with "fun" or "let", etc
             "let" => Let,
-            "int" => Primitive {
-                primitive_type: PrimitiveType::Int,
-            },
-            "long" => Primitive {
-                primitive_type: PrimitiveType::Long,
-            },
-            "float" => Primitive {
-                primitive_type: PrimitiveType::Float,
-            },
-            "double" => Primitive {
-                primitive_type: PrimitiveType::Double,
-            },
-            "string" => Primitive {
-                primitive_type: PrimitiveType::String,
-            },
-            "char" => Primitive {
-                primitive_type: PrimitiveType::Char,
-            },
-            "bool" => Primitive {
-                primitive_type: PrimitiveType::Bool,
-            },
             "(" => LParen,
             ")" => RParen,
-            "[" => LBracket,
-            "]" => RBracket,
             "{" => LBrace,
             "}" => RBrace,
             "==" => DoubleEqual,
@@ -97,9 +74,9 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
             "&&" => And,
             "!" => {
                 red_ln!(
-                    "The Ev programming language does not provide the \"Not\" [!] logical operator"
+                    "The Ev programming language does not provide the \"Not\" [!] logical operator" //I tried
                 );
-                blue_ln!("fun not = (param) {
+                blue_ln!(                    "fun not = (param) {
     let result = false;
     if param {
         result = false;
@@ -114,25 +91,16 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
             "-" => SubtractionOp,
             "*" => MultiplicationOp,
             ":" => Colon,
-            "break" => Break,
-            "continue" => Continue,
             "return" => Return,
             "if" => If,
             "else" => Else,
             "while" => While,
-            "try" => Try,
-            "catch" => Catch,
-            "." => Dot,
-            "this" => This,
-            "?" => Ternary,
             "," => Comma,
             "true" => BooleanLiteral { value: true },
             "false" => BooleanLiteral { value: false },
             &_ => None,
         };
-
-        // Could probably optimise by doing resulting_token = if token * and next token !* {one} else {two}
-        // but im unsure about the behaviour it could generate
+        //Slightly more complex tokens
         if token == "/" && next_char != '/' {
             resulting_token = DivisionOp;
         }
@@ -151,9 +119,9 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
         if token == "as" && next_char == ' ' {
             resulting_token = Caster;
         }
-
-        // Numeric literals
+        //Most complex tokens
         if resulting_token == None && error == LexerErrorType::None {
+            //Numeric literals
             let mut dot = false;
             let mut valid_num = !token.is_empty(); // If its empty, default to false
             token.trim().chars().for_each(|c| {
@@ -174,7 +142,6 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
                     valid_num = false
                 }
             });
-
             if !".0123456789".contains(next_char) && valid_num && !token.is_empty() {
                 resulting_token = NumericLiteral {
                     numeric_type: if token.contains('.') {
@@ -202,8 +169,8 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
                 };
             }
         }
-        // String literals
         if resulting_token == None && error == LexerErrorType::None {
+            //String literals
             // String literal
             if token.starts_with('"') && token.ends_with('"') && token.len() > 1 {
                 resulting_token = StringLiteral {
@@ -226,10 +193,10 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
                 error = LexerErrorType::StringLiteralDoesNotEnd;
             }
         }
-        // Identifier
         if resulting_token == None && error == LexerErrorType::None {
+            //Identifiers
             if (" ,.?^'{[()]}+-/*!|;=\"".contains(next_char) || next_char == EOF_SYMBOL)
-                && valid_identifier(token)
+                && valid_identifier(token) //For added safety
                 && !token.starts_with('\"')
                 && !token.is_empty()
                 && token.is_ascii()
@@ -238,25 +205,26 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
                     identifier: token.to_string(),
                 }
             } else if !token.is_ascii() {
+                //Im not going to have support for ascii characters
                 error = LexerErrorType::NonAsciiCharactersInIdentifier
             }
         }
     } else if token.contains('\n') {
+        //End the comment and proceed with the rest
         resulting_token = LineComment;
     }
-
-    if next_char == EOF_SYMBOL {
-        green_ln!("Lexing:  finished successfully ✔");
-    }
+    //Return
     (resulting_token, error)
 }
-
+//Simple regex function for helping with identifiers
 fn valid_identifier(identifier: &str) -> bool {
+    //The regex is taken from stackoverflow of course
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"[_a-zA-Z]\w{0,30}").unwrap());
     RE.is_match(identifier)
 }
 #[derive(Debug, PartialEq, Clone)]
 pub enum TokenType {
+    //Main enum for tokens
     NumericLiteral {
         numeric_type: NumericLiteralType,
         value: f64,
@@ -275,8 +243,6 @@ pub enum TokenType {
     Fun,
     LParen,           // (
     RParen,           // )
-    LBracket,         // [
-    RBracket,         // ]
     LBrace,           // {
     RBrace,           // }
     Equal,            // =
@@ -296,22 +262,12 @@ pub enum TokenType {
     DivisionOp,       // /
     Caster,           // as
     Colon,            // :
-    Break,            // break
-    Continue,         // continue
     Return,           // return
     If,               // if
     Else,             // else
     While,            // while
-    Try,              // try
-    Catch,            // catch
-    Dot,              // dot
-    This,             // this
-    Ternary,          // ?
     Comma,            // ,
     None,             // No token found, gets removed later
-    Primitive {
-        primitive_type: PrimitiveType,
-    },
 }
 #[derive(Debug, PartialEq, Clone)]
 pub enum NumericLiteralType {
@@ -332,14 +288,4 @@ pub enum LexerErrorType {
     CharIsTooLong,
     NonAsciiCharactersInIdentifier,
     None,
-}
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum PrimitiveType {
-    Int,
-    Long,
-    Float,
-    Double,
-    String,
-    Char,
-    Bool,
 }

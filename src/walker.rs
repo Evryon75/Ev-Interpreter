@@ -3,20 +3,25 @@ use colour::*;
 use std::collections::HashMap;
 use std::io::stdin;
 
+//STEP THREE: Walking
 pub(crate) fn walk(ast: AbstractSyntaxTree) {
+    //Memory
     let mut variables: Vec<HashMap<String, Expression>> = vec![];
     let mut functions: Vec<HashMap<String, Function>> = vec![];
 
     fn walk_block(
+        //Recursively asking for parameters
         block: &Vec<Node>,
         mut variables: &mut Vec<HashMap<String, Expression>>,
         mut functions: &mut Vec<HashMap<String, Function>>,
         params_passed: &Vec<ExpressionType>,
         params_asked: &Vec<Parameter>,
     ) -> VarType {
+        //When entering a new block, a new scope is added to both vectors, any new variables or functions will be added to the last scope
         (*variables).push(HashMap::new());
         (*functions).push(HashMap::new());
 
+        //Save the parameters to the function's variables
         let mut walked_params = vec![];
         for i in params_passed {
             walked_params.push(walk_expression(i, &mut variables, &mut functions));
@@ -37,6 +42,7 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
             red_ln!("Walking error: the number of given parameters must be equal to the number of parameters in the function declaration");
             panic!();
         }
+        //For returning values from functions
         let mut function_result = VarType::None;
         let mut returned = false;
         for node in block {
@@ -45,6 +51,7 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
             }
             let last = (&variables).len() - 1;
             match node {
+                //Do something based on the matched node and its provided information
                 Node::Return { value } => {
                     function_result =
                         walk_expression(&value.to_owned(), &mut variables, &mut functions);
@@ -196,20 +203,90 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                         panic!()
                     }
                 }
+                //This arm has hard coded builtin functions
                 Node::ProcedureCall { identifier, params } => {
                     match &*identifier.as_str() {
                         "output" => {
                             print(params, variables, functions);
                             println!(); //Getting a new line
                         }
-                        "scopes" => {
-                            cyan_ln!("v [Variables]");
-                            for i in variables.to_vec() {
-                                cyan_ln!("{:#?}", i);
+                        "free" => {
+                            for i in params {
+                                let mut t = 0;
+                                while t < variables.len() {
+                                    if variables[t].contains_key(match i {
+                                        ExpressionType::Ident { value } => {
+                                            value
+                                        }
+                                        _ => {
+                                            red_ln!("Walking error: cannot free anything that is not an identifier");
+                                            panic!();
+                                        }
+                                    }) {
+                                        variables[t].remove(match i {
+                                            ExpressionType::Ident { value } => {
+                                                value
+                                            }
+                                            _ => unreachable!()
+                                        });
+                                    }
+                                    t += 1;
+                                }
+                                t = 0;
+                                while t < functions.len() {
+                                    if functions[t].contains_key(match i {
+                                        ExpressionType::Ident { value } => {
+                                            value
+                                        }
+                                        _ => {
+                                            red_ln!("Walking error: cannot free anything that is not an identifier");
+                                            panic!();
+                                        }
+                                    }) {
+                                        functions[t].remove(match i {
+                                            ExpressionType::Ident { value } => {
+                                                value
+                                            }
+                                            _ => unreachable!()
+                                        });
+                                    }
+                                    t += 1;
+                                }
                             }
-                            cyan_ln!("v [Functions]");
+                        }
+                        "abort" => {
+                            red_ln!(
+                                "Process stopped: {:?}",
+                                if *&params.len() as i32 == 0 {
+                                    String::from("No arguments were provided")
+                                } else {
+                                    match walk_expression(&params[0], variables, functions) {
+                                        VarType::None => String::from("Null"),
+                                        VarType::StrExpr { value } => value.to_string(),
+                                        VarType::BoolExpr { value } => value.to_string(),
+                                        VarType::NumExpr { value } => value.to_string(),
+                                    }
+                                }
+                            );
+                            if params.len() > 1 {
+                                grey_ln!(
+                                    "abort() takes only one argument, the others will be ignored"
+                                );
+                            }
+                            panic!();
+                        }
+                        "scopes" => {
+                            cyan_ln!("[Variables]");
+                            let mut t = 0;
+                            for i in variables.to_vec() {
+                                cyan_ln!("Depth: {}, {:#?}", t, i);
+                                t += 1;
+                            }
+                            t = 0;
+                            cyan_ln!("[Functions]");
                             for i in functions.to_vec() {
-                                cyan_ln!("{:#?}", i);
+                                cyan_ln!("Depth: {}, {:#?}", t, i);
+                                t += 1;
                             }
                             if params.len() > 0 {
                                 grey_ln!(
@@ -237,16 +314,15 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
         }
         (*variables).remove((*variables).len() - 1);
         (*functions).remove((*functions).len() - 1);
-        function_result
+        //Return
+        function_result //The main thread returns None internally when it reaches the end
     }
-
+    //Evaluates expressions into values, stored as VarType, for type distinction
     fn walk_expression(
         expr: &ExpressionType,
         mut variables: &mut Vec<HashMap<String, Expression>>,
         mut functions: &mut Vec<HashMap<String, Function>>,
     ) -> VarType {
-        //todo: walk expression, returns false for now
-
         match expr {
             ExpressionType::LiteralE { value } => match value {
                 Literal::NumberL { value } => VarType::NumExpr {
@@ -259,6 +335,7 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                     value: value.to_owned(),
                 },
             },
+            //I did not make a function for analyzing the operators because it didnt seem as safe compared to this approach (tho it sure is a repetitive one)
             ExpressionType::BinaryE { op, lhs, rhs } => {
                 let res = match op {
                     Operator::GreaterThan => {
@@ -614,6 +691,7 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
             ExpressionType::UnaryE { op: _op, child } => match *child.to_owned() {
                 ExpressionType::LiteralE { value } => match value {
                     Literal::NumberL { value } => VarType::NumExpr {
+                        //Since the only unary operator i implement is the negative expression i dont need further checks
                         value: -value.to_owned() as f32,
                     },
                     Literal::StringL { .. } => {
@@ -650,7 +728,9 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                             value: match x.replace("\n", "").parse::<f32>() {
                                 Ok(_) => x.replace("\n", "").parse::<f32>().unwrap(),
                                 Err(_) => {
-                                    red_ln!("Walking error: you cannot convert a letters to a number");
+                                    red_ln!(
+                                        "Walking error: you cannot convert letters to a number"
+                                    );
                                     panic!()
                                 }
                             },
@@ -665,6 +745,53 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                             }
                         }
                     }
+                } else if identifier.eq("random_f") || identifier.eq("random") {
+                    use rand::Rng;
+                    if params.len() > 1 {
+                        let mut rng = rand::thread_rng();
+                        let randed = rng.gen_range(
+                            match walk_expression(&params[0], variables, functions) {
+                                VarType::None => {
+                                    red_ln!("Walking error: must provide a numeric value");
+                                    panic!()
+                                }
+                                VarType::StrExpr { .. } => {
+                                    red_ln!("Walking error: must provide a numeric value");
+                                    panic!()
+                                }
+                                VarType::BoolExpr { .. } => {
+                                    red_ln!("Walking error: must provide a numeric value");
+                                    panic!()
+                                }
+                                VarType::NumExpr { value } => value,
+                            }
+                                ..match walk_expression(&params[1], variables, functions) {
+                                    VarType::None => {
+                                        red_ln!("Walking error: must provide a numeric value");
+                                        panic!()
+                                    }
+                                    VarType::StrExpr { .. } => {
+                                        red_ln!("Walking error: must provide a numeric value");
+                                        panic!()
+                                    }
+                                    VarType::BoolExpr { .. } => {
+                                        red_ln!("Walking error: must provide a numeric value");
+                                        panic!()
+                                    }
+                                    VarType::NumExpr { value } => value,
+                                },
+                        );
+                        VarType::NumExpr {
+                            value: if !identifier.ends_with("f") {
+                                randed.round()
+                            } else {
+                                randed
+                            },
+                        }
+                    } else {
+                        red_ln!("Walking error: an origin and a limit must be specified, other parameters will be ignored");
+                        panic!();
+                    }
                 } else {
                     let mut res = VarType::None;
                     for i in functions.clone() {
@@ -678,6 +805,7 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                             );
                         }
                     }
+                    //Return
                     res
                 }
             }
@@ -688,13 +816,15 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
         variables: &mut Vec<HashMap<String, Expression>>,
         functions: &mut Vec<HashMap<String, Function>>,
     ) {
+        print!("⨠ ");
         for i in params {
             let result = walk_expression(i, variables, functions);
             print!(
                 "{} ",
                 match result {
                     VarType::None => {
-                        String::from("Null")
+                        red_ln!("Walking error: unknown variable or function");
+                        panic!();
                     }
                     VarType::StrExpr { value } => {
                         value.to_string()
@@ -709,7 +839,7 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
             );
         }
     }
-
+    //Begin the process
     walk_block(
         &ast.program,
         &mut variables,
@@ -718,7 +848,6 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
         &vec![],
     );
 }
-
 #[derive(Debug, Clone)]
 struct Function {
     params: Vec<Parameter>,

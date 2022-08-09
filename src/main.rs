@@ -13,27 +13,26 @@ mod lexer;
 mod walker;
 
 fn main() {
+    //Reading the source file
     let mut file_input = File::open("main.ev").expect("main.ev File not found!");
     let mut reading_input: String = "".to_string();
     file_input
         .read_to_string(&mut reading_input)
         .expect("Failed to read from main.ev");
-
-    let tokens = tokenize(reading_input).unwrap();
-    let ast = parse_tokens(tokens.clone());
-    walk(ast.clone()); //This was a one-liner but i needed these fields for debug information, and its cleaner too
-
+    //Take the result of each step function
+    let tokens = tokenize(reading_input).unwrap(); //STEP ONE
+    let ast = parse_tokens(tokens.clone()); //STEP TWO
+    walk(ast.clone()); //STEP THREE
+                       //This was a one-liner but i needed these fields for debug information, and its cleaner too
     green_ln!("Process: finished successfully ✔");
-
     //Tribute to Somewhere City
     magenta_ln!(
         "Thank you for checking out this project! ✨\n\
-    I learned a lot about language development and Rust.\n\
+    I learned a lot about language development, recursion, and Rust.\n\
     This project was infused with the album ⪧\"Somewhere City\"\n\
     by ⪧\"Origami Angel\", give it a listen! 🎶\n\
     ⪼https://www.youtube.com/watch?v=lNosH1DEPkQ⪻"
     );
-
     white_ln!("Press [ENTER] to close, or input \"DEBUG\" to access debug information");
     grey_ln!("Both \"DEBUG\" and \"debug\" will work");
     let mut close_terminal = String::new();
