@@ -60,6 +60,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                 *cursor += 1;
                 if token_vec[*cursor] != TokenType::LBrace
                     && token_vec[*cursor] != TokenType::RParen
+                    && token_vec[*cursor] != TokenType::Semicolon
                 {
                     let op = match token_vec[*cursor] {
                         TokenType::SubtractionOp => Operator::Minus,
