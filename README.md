@@ -2,16 +2,16 @@
 An interpreter for the Ev programming language, my own language!
 Documentation:
 if:
-  if condition {\n
-    stuff\n
-  };
-  if condition {
-    stuff
-  } else {
-    other stuff
-  };
+  if condition { <br/>
+    stuff<br/>
+  };<br/>
+  if condition {<br/>
+    stuff<br/>
+  } else {<br/>
+    other stuff<br/>
+  };<br/>
   
-while:
+while:<br/>
   while condition {
     stuff
   }
