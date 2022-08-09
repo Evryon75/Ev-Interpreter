@@ -24,9 +24,10 @@ functions:<br/>
 --fun identifier = (parameters) {<br/>
 ----stuff<br/>
 ----return expression;<br/>
---}<br/>
+--};<br/>
 --e.g. fun add = (x, y) {<br/>
 ---------return x + y;<br/>
+-------};
 
 builtin functions:
   - random(origin, range) [generates a random number between the origin and the range]
