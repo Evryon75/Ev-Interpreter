@@ -1,10 +1,10 @@
 # Ev-Interpreter
 An interpreter for the Ev programming language, my own language!
 Documentation:
-if: 
-  if condition {
-    stuff
-  };
+if:
+  >if condition {
+    >stuff
+  >};
   if condition {
     stuff
   } else {
