@@ -29,11 +29,11 @@ functions:
           return x + y;
 
 builtin functions:
-  random(origin, range) [generates a random number between the origin and the range]
-  scope() [Shows the variables and functions in that scope at that moment]
-  input("num" or "str") [takes input and converts it to a num or a string]
-  output(params) [prints the parameters]
-  free(param) [frees a variable from memory]
+  - random(origin, range) [generates a random number between the origin and the range]
+  - scope() [Shows the variables and functions in that scope at that moment]
+  - input("num" or "str") [takes input and converts it to a num or a string]
+  - output(params) [prints the parameters]
+  - free(param) [frees a variable from memory]
   
 quirks about the language:
   - expressions are evaluated from left to right 
