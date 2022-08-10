@@ -37,7 +37,8 @@ e.g. fun add = (x, y) {<br/>
 };
 </pre>
 
-> Builtin functions
+> Builtin functions </br>
+
   ⨠ random(origin, range) generates a random number between the origin and the range
 <pre>random(2, 15)</pre>
   ⨠ scope() Shows the variables and functions in that scope at that moment
