@@ -23,7 +23,7 @@ fn main() {
     let tokens = tokenize(reading_input).unwrap(); //STEP ONE
     let ast = parse_tokens(tokens.clone()); //STEP TWO
     walk(ast.clone()); //STEP THREE
-                       //This was a one-liner but i needed these fields for debug information, and its cleaner too
+   //This was a one-liner but i needed these fields for debug information, and its cleaner too
     green_ln!("[SYS] Process finished successfully");
     white_ln!("Press [ENTER] to close, or input \"DEBUG\" to access debug information");
     grey_ln!("Both \"DEBUG\" and \"debug\" will work");
