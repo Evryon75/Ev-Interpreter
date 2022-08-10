@@ -40,7 +40,7 @@ e.g. fun add = (x, y) {<br/>
 > Builtin functions </br>
 
   ⨠ random(origin, range) generates a random number between the origin and the range
-<pre>random(2, 15)</pre>
+<pre>random(2, 15), random_f(0.48, 9.16)</pre>
   ⨠ scope() Shows the variables and functions in that scope at that moment
 <pre>scope()</pre>
   ⨠ input("num" or "str") takes input and converts it to a num or a string
