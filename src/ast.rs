@@ -1,3 +1,4 @@
+use std::io::stdin;
 use crate::ast::ExpressionType::UnaryE;
 use crate::lexer::{NumericLiteralType, TokenType};
 use colour::*;
@@ -10,7 +11,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
         let mut received = false;
         for token in &token_types {
             if tokens.len().eq(&cursor) {
-                red_ln!("Parsing Error: Semicolon Expected");
+                red_ln!("[ERR] Parsing Error: Semicolon Expected");
+                grey_ln!("Press [ENTER] to close");
+                stdin().read_line(&mut String::from("")).expect("");
                 panic!()
             }
             if std::mem::discriminant(&tokens[*cursor]) == std::mem::discriminant(&token) {
@@ -20,11 +23,12 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
         if received {
             *cursor += 1;
         } else {
-            red_ln!(
-                "Parsing Error: Unexpected Token [{:?}] expected: {:?}",
+            red_ln!("[ERR] Parsing Error: Unexpected Token [{:?}] expected: {:?}",
                 &tokens[*cursor],
                 token_types
             );
+            grey_ln!("Press [ENTER] to close");
+            stdin().read_line(&mut String::from("")).expect("");
             panic!()
         }
     };
@@ -35,7 +39,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
             let mut received = false;
             for tok in &token_types {
                 if token_vec.len().eq(&cursor) {
-                    red_ln!("Parsing Error: Semicolon Expected");
+                    red_ln!("[ERR] Parsing Error: Semicolon Expected");
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!()
                 }
                 if std::mem::discriminant(&token_vec[*cursor]) == std::mem::discriminant(&tok) {
@@ -51,6 +57,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     token_types
                 );
                 blue_ln!("NOTE: Only literal values, identifiers, and function calls are allowed as parameters, use a temp variable instead");
+                grey_ln!("Press [ENTER] to close");
+                stdin().read_line(&mut String::from("")).expect("");
                 panic!()
             }
         };
@@ -110,6 +118,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     red_ln!(
                         "Parsing Error: Cannot use mathematical operator in boolean expression"
                     );
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!()
                 }
                 if op == Operator::None {
@@ -123,6 +133,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         "Parsing Error: The Ev programming language does not provide the \"Ternary operator\""
                     );
                     grey_ln!("I was going to add it but then i changed my mind");
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!()
                 } else {
                     *cursor += 1;
@@ -238,7 +250,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         }
                     }
                 } else {
-                    red_ln!("Parsing Error: Unary Operator on non Numeric Literal");
+                    red_ln!("[ERR] Parsing Error: Unary Operator on non Numeric Literal");
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!()
                 }
             }
@@ -279,8 +293,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         result
                     }
                 } else {
-                    red_ln!("Parsing Error: Opening Parenthesis without Closing Parenthesis");
+                    red_ln!("[ERR] Parsing Error: Opening Parenthesis without Closing Parenthesis");
                     blue_ln!("Note: The developer was too lazy to fix this bug (i tried i swear) so if you are trying to put something like \"(-1)\" in an expression you have to change it to \"(-1 + 0)\"");
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!()
                 }
             }
@@ -325,6 +341,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     "Parsing Error: Invalid Expression at [{:?}]",
                     token_vec[*cursor]
                 );
+                grey_ln!("Press [ENTER] to close");
+                stdin().read_line(&mut String::from("")).expect("");
                 panic!();
             }
         }
@@ -346,7 +364,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
             let mut received = false;
             for tok in &token_types {
                 if tokens.len().eq(&cursor) {
-                    red_ln!("Parsing Error: Semicolon Expected");
+                    red_ln!("[ERR] Parsing Error: Semicolon Expected");
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!()
                 }
                 if std::mem::discriminant(&tokens[*cursor]) == std::mem::discriminant(&tok) {
@@ -362,6 +382,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     token_types
                 );
                 blue_ln!("NOTE: Only literal values, identifiers, and function calls are allowed as parameters, use a temp variable instead");
+                grey_ln!("Press [ENTER] to close");
+                stdin().read_line(&mut String::from("")).expect("");
                 panic!()
             }
         };
@@ -399,7 +421,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                         params,
                     }
                 } else {
-                    red_ln!("Parsing error: Expected \"=\" or \"(\"");
+                    red_ln!("[ERR] Parsing error: Expected \"=\" or \"(\"");
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!();
                 }
             }
@@ -467,7 +491,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     || id == "random"
                     || id == "concat"
                 {
-                    red_ln!("Cannot overwrite I/O functions [input(), output()]");
+                    red_ln!("[ERR] Cannot overwrite I/O functions [input(), output()]");
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!();
                 }
                 expect(vec![TokenType::Equal], &mut cursor);
@@ -499,7 +525,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                     || id == "random"
                     || id == "concat"
                 {
-                    red_ln!("Cannot overwrite builtin functions [input(), output(), scopes(), free(), random()]");
+                    red_ln!("[ERR] Cannot overwrite builtin functions [input(), output(), scopes(), free(), random()]");
+                    grey_ln!("Press [ENTER] to close");
+                    stdin().read_line(&mut String::from("")).expect("");
                     panic!();
                 }
                 expect(vec![TokenType::Equal], &mut cursor);
@@ -541,7 +569,9 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                 }
             }
             _ => {
-                red_ln!("Parsing Error: Unexpected Token [{:?}]", &tokens[*cursor]);
+                red_ln!("[ERR] Parsing Error: Unexpected Token [{:?}]", &tokens[*cursor]);
+                grey_ln!("Press [ENTER] to close");
+                stdin().read_line(&mut String::from("")).expect("");
                 panic!()
             }
         }
@@ -553,7 +583,7 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
             .push(parse_statement(&tokens, &mut cursor, expect));
     }
 
-    green_ln!("Parsing: finished successfully ✔");
+    green_ln!("[SYS] Parsing finished successfully");
     //Return
     ast
 }

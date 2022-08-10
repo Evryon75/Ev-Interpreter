@@ -1,3 +1,4 @@
+use std::io::stdin;
 use colour::*;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -37,12 +38,14 @@ pub fn tokenize(input: String) -> Result<Vec<TokenType>, Vec<LexerErrorType>> {
             }
         } else {
             //Show possible errors
-            red_ln!("Lexing Error: {:?}", analysis_result.1);
+            red_ln!("[ERR] Lexing Error: {:?}", analysis_result.1);
+            grey_ln!("Press [ENTER] to close");
+            stdin().read_line(&mut String::from("")).expect("");
             panic!();
         }
         cursor += 1;
     }
-    green_ln!("Lexing: finished successfully ✔");
+    green_ln!("[SYS] Lexing finished successfully");
     //Return the result of the tokenization
     if lexing_errors.len() > 0 {
         Err(lexing_errors)
@@ -87,6 +90,8 @@ fn analyze_token(token: &String, next_char: char) -> (TokenType, LexerErrorType)
     return result;
 };"
                 );
+                grey_ln!("Press [ENTER] to close");
+                stdin().read_line(&mut String::from("")).expect("");
                 panic!()
             }
             "+" => AdditionOp,

@@ -1,5 +1,5 @@
 [package]
-name = "ev_compiler"
+name = "ev_interpreter"
 version = "0.1.0"
 edition = "2021"
 

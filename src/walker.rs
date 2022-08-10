@@ -1,7 +1,7 @@
 use crate::ast::{AbstractSyntaxTree, ExpressionType, Literal, Node, Operator, Parameter};
 use colour::*;
 use std::collections::HashMap;
-use std::io::stdin;
+use std::io::{stdin, stdout, Write};
 
 //STEP THREE: Walking
 pub(crate) fn walk(ast: AbstractSyntaxTree) {
@@ -39,7 +39,9 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                 index += 1;
             }
         } else {
-            red_ln!("Walking error: the number of given parameters must be equal to the number of parameters in the function declaration");
+            red_ln!("[ERR] Walking error: the number of given parameters must be equal to the number of parameters in the function declaration");
+            grey_ln!("Press [ENTER] to close");
+            stdin().read_line(&mut String::from("")).expect("");
             panic!();
         }
         //For returning values from functions
@@ -68,16 +70,22 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                         functions,
                     ) {
                         VarType::StrExpr { .. } => {
-                            red_ln!("Expected boolean expression, found string expression");
+                            red_ln!("[ERR] Expected boolean expression, found string expression");
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!()
                         }
                         VarType::BoolExpr { value } => value,
                         VarType::NumExpr { .. } => {
-                            red_ln!("Expected boolean expression, found mathematical expression");
+                            red_ln!("[ERR] Expected boolean expression, found mathematical expression");
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!()
                         }
                         _ => {
-                            red_ln!("Expected boolean expression, found null (make sure the function has a return statement)");
+                            red_ln!("[ERR] Expected boolean expression, found null (make sure the function has a return statement)");
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!()
                         }
                     };
@@ -94,16 +102,22 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                         functions,
                     ) {
                         VarType::StrExpr { .. } => {
-                            red_ln!("Expected boolean expression, found string expression");
+                            red_ln!("[ERR] Expected boolean expression, found string expression");
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!()
                         }
                         VarType::BoolExpr { value } => value,
                         VarType::NumExpr { .. } => {
-                            red_ln!("Expected boolean expression, found mathematical expression");
+                            red_ln!("[ERR] Expected boolean expression, found mathematical expression");
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!()
                         }
                         _ => {
-                            red_ln!("Expected boolean expression, found null (make sure the function has a return statement)");
+                            red_ln!("[ERR] Expected boolean expression, found null (make sure the function has a return statement)");
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!()
                         }
                     };
@@ -111,18 +125,23 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                         walk_block(block, variables, functions, &vec![], &vec![]);
                         cond = match walk_expression(&condition.to_owned(), variables, functions) {
                             VarType::StrExpr { .. } => {
-                                red_ln!("Expected boolean expression, found string expression");
+                                red_ln!("[ERR] Expected boolean expression, found string expression");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { value } => value,
                             VarType::NumExpr { .. } => {
-                                red_ln!(
-                                    "Expected boolean expression, found mathematical expression"
+                                red_ln!("[ERR] Expected boolean expression, found mathematical expression"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             _ => {
-                                red_ln!("Expected boolean expression, found null (make sure the function has a return statement)");
+                                red_ln!("[ERR] Expected boolean expression, found null (make sure the function has a return statement)");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                         };
@@ -145,6 +164,8 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                             "Walking error: duplicate variable identifier [{}]",
                             identifier
                         );
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!()
                     }
                 }
@@ -172,6 +193,8 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                             "Walking error: duplicate function identifier [{}]",
                             identifier
                         );
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!()
                     }
                 }
@@ -200,6 +223,8 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                             grey!("{:?}", i.keys());
                         }
                         println!(); //Get a new line
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!()
                     }
                 }
@@ -219,7 +244,9 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                             value
                                         }
                                         _ => {
-                                            red_ln!("Walking error: cannot free anything that is not an identifier");
+                                            red_ln!("[ERR] Walking error: cannot free anything that is not an identifier");
+                                            grey_ln!("Press [ENTER] to close");
+                                            stdin().read_line(&mut String::from("")).expect("");
                                             panic!();
                                         }
                                     }) {
@@ -239,7 +266,9 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                             value
                                         }
                                         _ => {
-                                            red_ln!("Walking error: cannot free anything that is not an identifier");
+                                            red_ln!("[ERR] Walking error: cannot free anything that is not an identifier");
+                                            grey_ln!("Press [ENTER] to close");
+                                            stdin().read_line(&mut String::from("")).expect("");
                                             panic!();
                                         }
                                     }) {
@@ -273,6 +302,8 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                     "abort() takes only one argument, the others will be ignored"
                                 );
                             }
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!();
                         }
                         "scopes" => {
@@ -344,16 +375,22 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                 red_ln!(
                                 "Walking error: Cannot apply the greater than operator on a Null"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
                                 red_ln!(
                                 "Walking error: Cannot apply the greater than operator on a String"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the greater than operator on a Boolean");
+                                red_ln!("[ERR] Walking error: Cannot apply the greater than operator on a Boolean");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
@@ -363,16 +400,22 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                 red_ln!(
                                 "Walking error: Cannot apply the greater than operator on a Null"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
                                 red_ln!(
                                 "Walking error: Cannot apply the greater than operator on a String"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the greater than operator on a Boolean");
+                                red_ln!("[ERR] Walking error: Cannot apply the greater than operator on a Boolean");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
@@ -382,42 +425,52 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                     Operator::LessThan => {
                         let l = match walk_expression(lhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the less than operator on a Null"
+                                red_ln!("[ERR] Walking error: Cannot apply the less than operator on a Null"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
                                 red_ln!(
                                 "Walking error: Cannot apply the less than operator on a String"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
                                 red_ln!(
                                 "Walking error: Cannot apply the less than operator on a Boolean"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
                         };
                         let r = match walk_expression(rhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the less than operator on a Null"
+                                red_ln!("[ERR] Walking error: Cannot apply the less than operator on a Null"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
                                 red_ln!(
                                 "Walking error: Cannot apply the less than operator on a String"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
                                 red_ln!(
                                 "Walking error: Cannot apply the less than operator on a Boolean"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
@@ -428,39 +481,47 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                     Operator::Plus => {
                         let l = match walk_expression(lhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!("Walking error: Cannot apply the plus operator on a Null");
+                                red_ln!("[ERR] Walking error: Cannot apply the plus operator on a Null");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the plus operator on a String"
+                                red_ln!("[ERR] Walking error: Cannot apply the plus operator on a String"
                                 );
                                 grey_ln!("Consider using the concat(\"p1\", \"p2\", \"etc\") function");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the plus operator on a Boolean"
+                                red_ln!("[ERR] Walking error: Cannot apply the plus operator on a Boolean"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
                         };
                         let r = match walk_expression(rhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!("Walking error: Cannot apply the plus operator on a Null");
+                                red_ln!("[ERR] Walking error: Cannot apply the plus operator on a Null");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the plus operator on a String"
+                                red_ln!("[ERR] Walking error: Cannot apply the plus operator on a String"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the plus operator on a Boolean"
+                                red_ln!("[ERR] Walking error: Cannot apply the plus operator on a Boolean"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
@@ -470,38 +531,46 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                     Operator::Minus => {
                         let l = match walk_expression(lhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!("Walking error: Cannot apply the minus operator on a Null");
+                                red_ln!("[ERR] Walking error: Cannot apply the minus operator on a Null");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the minus operator on a String"
+                                red_ln!("[ERR] Walking error: Cannot apply the minus operator on a String"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the minus operator on a Boolean"
+                                red_ln!("[ERR] Walking error: Cannot apply the minus operator on a Boolean"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
                         };
                         let r = match walk_expression(rhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!("Walking error: Cannot apply the minus operator on a Null");
+                                red_ln!("[ERR] Walking error: Cannot apply the minus operator on a Null");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the minus operator on a String"
+                                red_ln!("[ERR] Walking error: Cannot apply the minus operator on a String"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the minus operator on a Boolean"
+                                red_ln!("[ERR] Walking error: Cannot apply the minus operator on a Boolean"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
@@ -514,14 +583,20 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                 red_ln!(
                                 "Walking error: Cannot apply the multiplication operator on a Null"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the multiplication operator on a String");
+                                red_ln!("[ERR] Walking error: Cannot apply the multiplication operator on a String");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the multiplication operator on a Boolean");
+                                red_ln!("[ERR] Walking error: Cannot apply the multiplication operator on a Boolean");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
@@ -531,14 +606,20 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                 red_ln!(
                                 "Walking error: Cannot apply the multiplication operator on a Null"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the multiplication operator on a String");
+                                red_ln!("[ERR] Walking error: Cannot apply the multiplication operator on a String");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the multiplication operator on a Boolean");
+                                red_ln!("[ERR] Walking error: Cannot apply the multiplication operator on a Boolean");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
@@ -548,42 +629,50 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                     Operator::Division => {
                         let l = match walk_expression(lhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the division operator on a Null"
+                                red_ln!("[ERR] Walking error: Cannot apply the division operator on a Null"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the division operator on a String"
+                                red_ln!("[ERR] Walking error: Cannot apply the division operator on a String"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
                                 red_ln!(
                                 "Walking error: Cannot apply the division operator on a Boolean"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
                         };
                         let r = match walk_expression(rhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the division operator on a Null"
+                                red_ln!("[ERR] Walking error: Cannot apply the division operator on a Null"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!(
-                                    "Walking error: Cannot apply the division operator on a String"
+                                red_ln!("[ERR] Walking error: Cannot apply the division operator on a String"
                                 );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { .. } => {
                                 red_ln!(
                                 "Walking error: Cannot apply the division operator on a Boolean"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::NumExpr { value } => value,
@@ -593,31 +682,43 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                     Operator::And => {
                         let l = match walk_expression(lhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!("Walking error: Cannot apply the and operator on a Null");
+                                red_ln!("[ERR] Walking error: Cannot apply the and operator on a Null");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the and operator on a String");
+                                red_ln!("[ERR] Walking error: Cannot apply the and operator on a String");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { value } => value,
                             VarType::NumExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the and operator on a number");
+                                red_ln!("[ERR] Walking error: Cannot apply the and operator on a number");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                         };
                         let r = match walk_expression(rhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!("Walking error: Cannot apply the and operator on a Null");
+                                red_ln!("[ERR] Walking error: Cannot apply the and operator on a Null");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the and operator on a String");
+                                red_ln!("[ERR] Walking error: Cannot apply the and operator on a String");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { value } => value,
                             VarType::NumExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the and operator on a number");
+                                red_ln!("[ERR] Walking error: Cannot apply the and operator on a number");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                         };
@@ -626,31 +727,43 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                     Operator::Or => {
                         let l = match walk_expression(lhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!("Walking error: Cannot apply the or operator on a Null");
+                                red_ln!("[ERR] Walking error: Cannot apply the or operator on a Null");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the or operator on a String");
+                                red_ln!("[ERR] Walking error: Cannot apply the or operator on a String");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { value } => value,
                             VarType::NumExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the or operator on a number");
+                                red_ln!("[ERR] Walking error: Cannot apply the or operator on a number");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                         };
                         let r = match walk_expression(rhs, &mut variables, &mut functions) {
                             VarType::None => {
-                                red_ln!("Walking error: Cannot apply the or operator on a Null");
+                                red_ln!("[ERR] Walking error: Cannot apply the or operator on a Null");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the or operator on a String");
+                                red_ln!("[ERR] Walking error: Cannot apply the or operator on a String");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::BoolExpr { value } => value,
                             VarType::NumExpr { .. } => {
-                                red_ln!("Walking error: Cannot apply the or operator on a number");
+                                red_ln!("[ERR] Walking error: Cannot apply the or operator on a number");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                         };
@@ -662,6 +775,8 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                 red_ln!(
                                 "Walking error: Cannot apply the double equal operator on a Null"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             VarType::StrExpr { value } => value.to_string(),
@@ -673,6 +788,8 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                                 red_ln!(
                                 "Walking error: Cannot apply the double equal operator on a Null"
                             );
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()
                             }
                             //I understand javascript a bit better now, (true == "true" and 1 == "1")
@@ -683,7 +800,9 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                         VarType::BoolExpr { value: l == r }
                     }
                     Operator::None => {
-                        red_ln!("Walking error: the operator is Null");
+                        red_ln!("[ERR] Walking error: the operator is Null");
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!()
                     }
                 };
@@ -696,13 +815,17 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                         value: -value.to_owned() as f32,
                     },
                     Literal::StringL { .. } => {
-                        red_ln!("Walking error: Cannot apply a unary operator on a string literal");
+                        red_ln!("[ERR] Walking error: Cannot apply a unary operator on a string literal");
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!()
                     }
                     Literal::BooleanL { .. } => {
                         red_ln!(
                             "Walking error: Cannot apply a unary operator on a boolean literal"
                         );
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!()
                     }
                 },
@@ -735,43 +858,56 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                     }
                 } else if identifier.eq("input") {
                     if params.len() == 0 {
-                        red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                        red_ln!("[ERR] Walking error: must provide a type argument [\"num\", \"str\"]");
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!()
                     }
+                    print!("> ");
+                    stdout().flush().expect("flush failed!");
                     let mut x = String::from("");
                     stdin().read_line(&mut x).unwrap();
                     match (match &params[0] {
                         ExpressionType::LiteralE { value } => {match value {
                             Literal::NumberL { .. } => {
-                                red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                                red_ln!("[ERR] Walking error: must provide a type argument [\"num\", \"str\"]");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()}
                             Literal::StringL { value } => value,
                             Literal::BooleanL { .. } => {
-                                red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                                red_ln!("[ERR] Walking error: must provide a type argument [\"num\", \"str\"]");
+                                grey_ln!("Press [ENTER] to close");
+                                stdin().read_line(&mut String::from("")).expect("");
                                 panic!()}
                         }}
                         _ => {
-                            red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                            red_ln!("[ERR] Walking error: must provide a type argument [\"num\", \"str\"]");
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!()
                         }
                     }).as_str() {
                         "num" => VarType::NumExpr {
-                            value: match x.replace("\n", "").parse::<f32>() {
-                                Ok(_) => x.replace("\n", "").parse::<f32>().unwrap(),
+                            value: match x.replace("\n", "").replace(" ", "").replace("\r", "").parse::<f32>() {
+                                Ok(_) => x.replace("\n", "").replace(" ", "").replace("\r", "").parse::<f32>().unwrap(),
                                 Err(_) => {
-                                    red_ln!(
-                                        "Walking error: you cannot convert letters to a number"
+                                    red_ln!("[ERR] Walking error: you cannot convert letters to a number"
                                     );
                                     grey_ln!("This includes empty spaces");
+                                    grey_ln!("Press [ENTER] to close");
+                                    stdin().read_line(&mut String::from("")).expect("");
                                     panic!()
                                 }
                             },
                         },
                         "str" => VarType::StrExpr {
-                            value: x.replace("\n", "").to_string(),
+                            value: x.replace("\n", "").replace("\r", "").to_string(),
                         },
                         _ => {
-                            red_ln!("Walking error: must provide a type argument [\"num\", \"str\"]");
+                            red_ln!("[ERR] Walking error: must provide a type argument [\"num\", \"str\"]");
+                            grey_ln!("Press [ENTER] to close");
+                            stdin().read_line(&mut String::from("")).expect("");
                             panic!()
                         }
                     }
@@ -782,30 +918,42 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                         let randed = rng.gen_range(
                             match walk_expression(&params[0], variables, functions) {
                                 VarType::None => {
-                                    red_ln!("Walking error: must provide a numeric value");
+                                    red_ln!("[ERR] Walking error: must provide a numeric value");
+                                    grey_ln!("Press [ENTER] to close");
+                                    stdin().read_line(&mut String::from("")).expect("");
                                     panic!()
                                 }
                                 VarType::StrExpr { .. } => {
-                                    red_ln!("Walking error: must provide a numeric value");
+                                    red_ln!("[ERR] Walking error: must provide a numeric value");
+                                    grey_ln!("Press [ENTER] to close");
+                                    stdin().read_line(&mut String::from("")).expect("");
                                     panic!()
                                 }
                                 VarType::BoolExpr { .. } => {
-                                    red_ln!("Walking error: must provide a numeric value");
+                                    red_ln!("[ERR] Walking error: must provide a numeric value");
+                                    grey_ln!("Press [ENTER] to close");
+                                    stdin().read_line(&mut String::from("")).expect("");
                                     panic!()
                                 }
                                 VarType::NumExpr { value } => value,
                             }
                                 ..match walk_expression(&params[1], variables, functions) {
                                     VarType::None => {
-                                        red_ln!("Walking error: must provide a numeric value");
+                                        red_ln!("[ERR] Walking error: must provide a numeric value");
+                                        grey_ln!("Press [ENTER] to close");
+                                        stdin().read_line(&mut String::from("")).expect("");
                                         panic!()
                                     }
                                     VarType::StrExpr { .. } => {
-                                        red_ln!("Walking error: must provide a numeric value");
+                                        red_ln!("[ERR] Walking error: must provide a numeric value");
+                                        grey_ln!("Press [ENTER] to close");
+                                        stdin().read_line(&mut String::from("")).expect("");
                                         panic!()
                                     }
                                     VarType::BoolExpr { .. } => {
-                                        red_ln!("Walking error: must provide a numeric value");
+                                        red_ln!("[ERR] Walking error: must provide a numeric value");
+                                        grey_ln!("Press [ENTER] to close");
+                                        stdin().read_line(&mut String::from("")).expect("");
                                         panic!()
                                     }
                                     VarType::NumExpr { value } => value,
@@ -819,7 +967,9 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
                             },
                         }
                     } else {
-                        red_ln!("Walking error: an origin and a limit must be specified, other parameters will be ignored");
+                        red_ln!("[ERR] Walking error: an origin and a limit must be specified, other parameters will be ignored");
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!();
                     }
                 } else {
@@ -846,14 +996,16 @@ pub(crate) fn walk(ast: AbstractSyntaxTree) {
         variables: &mut Vec<HashMap<String, Expression>>,
         functions: &mut Vec<HashMap<String, Function>>,
     ) {
-        print!("⨠ ");
+        print!("[OUT] ");
         for i in params {
             let result = walk_expression(i, variables, functions);
             print!(
                 "{} ",
                 match result {
                     VarType::None => {
-                        red_ln!("Walking error: unknown variable or function");
+                        red_ln!("[ERR] Walking error: unknown variable or function");
+                        grey_ln!("Press [ENTER] to close");
+                        stdin().read_line(&mut String::from("")).expect("");
                         panic!();
                     }
                     VarType::StrExpr { value } => {
