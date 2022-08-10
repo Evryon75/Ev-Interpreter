@@ -38,7 +38,6 @@ e.g. fun add = (x, y) {<br/>
 </pre>
 
 > Builtin functions
-<pre>
   ⨠ random(origin, range) generates a random number between the origin and the range
 <pre>random(2, 15)</pre>
   ⨠ scope() Shows the variables and functions in that scope at that moment
@@ -53,8 +52,6 @@ e.g. fun add = (x, y) {<br/>
 <pre>abort("Something went wrong")</pre>
   ⨠ concat(params) concatenates strings
 <pre>concat("Hello ", "world", "!")</pre>
-</pre>
-
 > Quirks about the language
   - expressions are evaluated from right to left 
   - there is no operator precedence, you can use (grouping)
