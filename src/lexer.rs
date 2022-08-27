@@ -1,7 +1,7 @@
-use std::io::stdin;
 use colour::*;
 use once_cell::sync::Lazy;
 use regex::Regex;
+use std::io::stdin;
 
 const EOF_SYMBOL: char = '⨂'; //Used for safer parsing in some cases
                               //STEP ONE: Tokenization

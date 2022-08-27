@@ -1,7 +1,7 @@
-use std::io::stdin;
 use crate::ast::ExpressionType::UnaryE;
 use crate::lexer::{NumericLiteralType, TokenType};
 use colour::*;
+use std::io::stdin;
 
 //STEP TWO: Parsing
 pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
@@ -23,7 +23,8 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
         if received {
             *cursor += 1;
         } else {
-            red_ln!("[ERR] Parsing Error: Unexpected Token [{:?}] expected: {:?}",
+            red_ln!(
+                "[ERR] Parsing Error: Unexpected Token [{:?}] expected: {:?}",
                 &tokens[*cursor],
                 token_types
             );
@@ -569,7 +570,10 @@ pub(crate) fn parse_tokens(tokens: Vec<TokenType>) -> AbstractSyntaxTree {
                 }
             }
             _ => {
-                red_ln!("[ERR] Parsing Error: Unexpected Token [{:?}]", &tokens[*cursor]);
+                red_ln!(
+                    "[ERR] Parsing Error: Unexpected Token [{:?}]",
+                    &tokens[*cursor]
+                );
                 grey_ln!("Press [ENTER] to close");
                 stdin().read_line(&mut String::from("")).expect("");
                 panic!()
